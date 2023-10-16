@@ -18,11 +18,12 @@ module ActiveKit
 
           wordbook = Wordbook.new
           word_for_position = wordbook.next_word(count: position)
-          json_where = 'value->"$.sequence.attributes.' + attribute_name.to_s + '" = "' + word_for_position + '"'
-          record_at_position = ActiveKit::Attribute.where(record_type: record.class.name).where(json_where).first&.record
+          # TODO: committer record for the attribute with given word_for_position should be found and resaved to recalculate its position.
+          # json_where = 'value->"$.sequence.attributes.' + attribute_name.to_s + '" = "' + word_for_position + '"'
+          # record_at_position = ActiveKit::Attribute.where(record_type: record.class.name).where(json_where).first&.record
           record.activekit_association.sequence[:attributes][attribute_name.to_sym] = word_for_position
           record.activekit_association.save!
-          record_at_position.save! if record_at_position
+          # record_at_position.save! if record_at_position
         else
           record.activekit_association.sequence[:attributes][attribute_name.to_sym] = nil
           record.activekit_association.save!
