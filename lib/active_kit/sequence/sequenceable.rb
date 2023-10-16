@@ -17,31 +17,25 @@ module ActiveKit
         # sequence_attribute :name, :positioning_method, updater: { via: :assoc, on: {} }
         # sequence_attribute :name, :positioning_method, updater: { via: {}, on: {} }
         # Note: :on and :via in :updater can accept nested associations.
-        def sequence_attribute(name, positioning_method, **options)
+        def sequence_attribute(name, positioning_method = nil, **options)
+          ActiveKit::Loader.ensure_setup_for!(current_class: self)
+
           name = name.to_sym
-          positioning_method = positioning_method.to_sym
+          options.store(:positioning_method, positioning_method&.to_sym)
           options.deep_symbolize_keys!
 
-          unless self.respond_to?(:sequencer)
-            define_singleton_method :sequencer do
-              @sequencer ||= ActiveKit::Sequence::Sequencer.new(current_class: self)
-            end
-
-            # scope :order_sequence, -> (options_hash) { includes(:sequence_attributes).where(sequence_attributes: { name: name.to_s }).order("sequence_attributes.value": :asc) } 
-          end
-
-          set_active_sequence_callbacks(attribute_name: name, positioning_method: positioning_method, updater: options.delete(:updater))
-
-          sequencer.add_attribute(name: name, options: options)
+          set_active_sequence_callbacks(attribute_name: name, options: options)
+          activekiter.sequence.add_attribute(name: name, options: options)
         end
 
-        def set_active_sequence_callbacks(attribute_name:, positioning_method:, updater:)
-          updater = updater || {}
+        def set_active_sequence_callbacks(attribute_name:, options:)
+          positioning_method = options.dig(:positioning_method)
+          updater = options.dig(:updater) || {}
 
           if updater.empty?
             after_commit do
               position = positioning_method ? self.public_send(positioning_method) : nil
-              self.class.sequencer.update(record: self, attribute_name: attribute_name, position: position)
+              self.class.activekiter.sequence.update(record: self, attribute_name: attribute_name, position: position)
               logger.info "ActiveSequence - Sequencing from #{self.class.name}: Done."
             end
           else
@@ -52,20 +46,20 @@ module ActiveKit
             updater_via = updater.delete(:via)
             updater_on = updater.delete(:on) || updater
             
-            base_klass = search_base_klass(self.class.name, updater_via)
-            klass = reflected_klass(base_klass, updater_on.key)
+            base_klass = search_base_klass(self.name, updater_via)
+            klass = reflected_klass(base_klass, updater_on.keys.first)
             klass.constantize.class_eval do
               after_commit do
-                inverse_assoc = search_inverse_assoc(self, updater_on)
+                inverse_assoc = self.class.search_inverse_assoc(self, updater_on)
                 position = positioning_method ? self.public_send(positioning_method) : nil
                 if inverse_assoc.respond_to?(:each)
-                  inverse_assoc.each { |instance| instance.class.sequencer.update(record: instance, attribute_name: attribute_name, position: position) }
+                  inverse_assoc.each { |instance| instance.class.activekiter.sequence.update(record: instance, attribute_name: attribute_name, position: position) }
                 else
-                  inverse_assoc.class.sequencer.update(record: inverse_assoc, attribute_name: attribute_name, position: position)
+                  inverse_assoc.class.activekiter.sequence.update(record: inverse_assoc, attribute_name: attribute_name, position: position)
                 end
                 logger.info "ActiveSequence - Sequencing from #{self.class.name}: Done."
               end
-            end          
+            end
           end
         end
 
@@ -75,8 +69,8 @@ module ActiveKit
           elsif updater_via.is_a? Symbol
             reflected_klass(classname, updater_via)
           elsif updater_via.is_a? Hash
-            klass = reflected_klass(classname, updater_via.key)
-            updater_via.value.is_a?(Hash) ? search_base_klass(klass, updater_via.value) : reflected_klass(klass, updater_via.value)
+            klass = reflected_klass(classname, updater_via.keys.first)
+            updater_via.values.first.is_a?(Hash) ? search_base_klass(klass, updater_via.values.first) : reflected_klass(klass, updater_via.values.first)
           end
         end
 
@@ -87,11 +81,11 @@ module ActiveKit
         end
 
         def search_inverse_assoc(klass_object, updater_on)
-          if updater_on.value.is_a?(Hash)
-            klass_object = klass_object.public_send(updater_on.value.key)
-            search_inverse_assoc(klass_object, updater_on.value)
+          if updater_on.values.first.is_a?(Hash)
+            klass_object = klass_object.public_send(updater_on.values.first.keys.first)
+            search_inverse_assoc(klass_object, updater_on.values.first)
           else
-            klass_object.public_send(updater_on.value)
+            klass_object.public_send(updater_on.values.first)
           end
         end
       end

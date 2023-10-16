@@ -17,7 +17,7 @@ module ActiveKit
     end
 
     def self.ensure_has_one_association_for!(record:)
-      Attribute.create!(record: record) unless record.activekit_association
+      record.create_activekit_association unless record.activekit_association
     end
   end
 end
