@@ -1,6 +1,6 @@
 module ActiveKit
   module Sequence
-    class Sequencer
+    class Sequence
       attr_reader :defined_attributes
 
       def initialize(current_class:)
@@ -11,8 +11,7 @@ module ActiveKit
       end
 
       def update(record:, attribute_name:, position:)
-        attribute = Attribute.find_by(record: record, name: attribute_name)
-        Attribute.create!(record: record, name: attribute_name) unless attribute
+        ActiveKit::Loader.ensure_has_one_association_for!(record: record)
 
         if position
           raise "position '#{position}' is not a valid unsigned integer value greater than 0." unless position.is_a?(Integer) && position > 0

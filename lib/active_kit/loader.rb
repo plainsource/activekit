@@ -1,11 +1,23 @@
 module ActiveKit
   module Loader
-    def self.setup!(current_class:)
+    def self.ensure_setup_for!(current_class:)
       current_class.class_eval do
-        unless self.reflect_on_association :activekit
-          has_one :activekit, as: :record, dependent: :destroy, class_name: "ActiveKit::Attribute"
+        unless self.reflect_on_association :activekit_association
+          has_one :activekit_association, as: :record, dependent: :destroy, class_name: "ActiveKit::Attribute"
+
+          def activekit
+            @activekit ||= Relation.new(current_object: self)
+          end
+
+          def self.activekiter
+            @activekiter ||= Activekiter.new(current_class: self)
+          end
         end
       end
+    end
+
+    def self.ensure_has_one_association_for!(record:)
+      Attribute.create!(record: record) unless record.activekit_association
     end
   end
 end

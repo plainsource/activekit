@@ -2,7 +2,7 @@ module ActiveKit
   module Sequence
     extend ActiveSupport::Autoload
 
-    autoload :Sequencer
+    autoload :Sequence
     autoload :Wordbook
   end
 end
