@@ -8,8 +8,6 @@ module ActiveKit
 
       ActiveSupport.on_load(:active_record) do
         include ActiveKit::Activekitable
-
-        has_one :activekit, as: :record, dependent: :destroy, class_name: "ActiveKit::Attribute"
       end
     end
   end
