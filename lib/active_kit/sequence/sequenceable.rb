@@ -24,27 +24,18 @@ module ActiveKit
 
           unless self.respond_to?(:sequencer)
             define_singleton_method :sequencer do
-              @sequencer ||= ActiveSequence::Sequencer.new(current_class: self)
+              @sequencer ||= ActiveKit::Sequence::Sequencer.new(current_class: self)
             end
 
-            has_many :sequence_attributes, as: :record, dependent: :destroy, class_name: "ActiveSequence::Attribute"
             # scope :order_sequence, -> (options_hash) { includes(:sequence_attributes).where(sequence_attributes: { name: name.to_s }).order("sequence_attributes.value": :asc) } 
           end
 
-          set_active_sequence_create_callbacks(attribute_name: name)
-          set_active_sequence_commit_callbacks(attribute_name: name, positioning_method: positioning_method, updater: options.delete(:updater))
+          set_active_sequence_callbacks(attribute_name: name, positioning_method: positioning_method, updater: options.delete(:updater))
 
           sequencer.add_attribute(name: name, options: options)
         end
 
-        def set_active_sequence_create_callbacks(attribute_name:)
-          before_create do
-            self.sequence_attributes.find_or_initialize_by(name: attribute_name)
-            logger.info "ActiveSequence - Creating Sequence attribute '#{attribute}' from #{self.class.name}: Done."
-          end
-        end
-
-        def set_active_sequence_commit_callbacks(attribute_name:, positioning_method:, updater:)
+        def set_active_sequence_callbacks(attribute_name:, positioning_method:, updater:)
           updater = updater || {}
 
           if updater.empty?
