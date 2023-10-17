@@ -33,7 +33,7 @@ module ActiveKit
           updater = options.dig(:updater) || {}
 
           if updater.empty?
-            after_commit do
+            after_save do
               position = positioning_method ? self.public_send(positioning_method) : nil
               self.class.activekiter.sequence.update(record: self, attribute_name: attribute_name, position: position)
               logger.info "ActiveSequence - Sequencing from #{self.class.name}: Done."
@@ -49,7 +49,7 @@ module ActiveKit
             base_klass = search_base_klass(self.name, updater_via)
             klass = reflected_klass(base_klass, updater_on.keys.first)
             klass.constantize.class_eval do
-              after_commit do
+              after_save do
                 inverse_assoc = self.class.search_inverse_assoc(self, updater_on)
                 position = positioning_method ? self.public_send(positioning_method) : nil
                 if inverse_assoc.respond_to?(:each)
