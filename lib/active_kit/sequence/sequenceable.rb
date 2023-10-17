@@ -52,7 +52,7 @@ module ActiveKit
               after_save    :activekit_sequence_sequenceable_callback
               after_destroy :activekit_sequence_sequenceable_callback
 
-              private def activekit_sequence_sequenceable_callback
+              define_method :activekit_sequence_sequenceable_callback do
                 inverse_assoc = self.class.search_inverse_assoc(self, updater_on)
                 position = positioning_method ? self.public_send(positioning_method) : nil
                 if inverse_assoc.respond_to?(:each)
@@ -62,6 +62,7 @@ module ActiveKit
                 end
                 logger.info "ActiveSequence - Sequencing from #{self.class.name}: Done."
               end
+              private :activekit_sequence_sequenceable_callback
             end
           end
         end
