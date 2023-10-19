@@ -19,7 +19,7 @@ module ActiveKit
       # Here constantize is used to get the latest reloaded class as per the below link.
       # https://guides.rubyonrails.org/autoloading_and_reloading_constants.html#use-case-3-configure-application-classes-for-engines
       def activekit_runner(request, &blk)
-        "ActiveKit::Schedule::Middleware".constantize.run(request: request)
+        ActiveKit::Schedule::Middleware.run(request: request)
 
         yield
       end
