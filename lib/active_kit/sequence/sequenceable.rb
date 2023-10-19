@@ -18,7 +18,7 @@ module ActiveKit
         # sequence_attribute :name, :positioning_method, updater: { via: {}, on: {} }
         # Note: :on and :via in :updater can accept nested associations.
         def sequence_attribute(name, positioning_method = nil, **options)
-          ActiveKit::Ensure.setup_for!(current_class: self)
+          ActiveKit::Base::Ensure.setup_for!(current_class: self)
 
           name = name.to_sym
           options.store(:positioning_method, positioning_method&.to_sym)
