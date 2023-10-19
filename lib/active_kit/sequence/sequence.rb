@@ -11,7 +11,7 @@ module ActiveKit
       end
 
       def update(record:, attribute_name:, position:)
-        ActiveKit::Loader.ensure_has_one_association_for!(record: record)
+        ActiveKit::Ensure.has_one_association_for!(record: record)
 
         if position
           raise "position '#{position}' is not a valid unsigned integer value greater than 0." unless position.is_a?(Integer) && position > 0

@@ -4,7 +4,7 @@ module ActiveKit
       @app = app
     end
 
-    # Middleware that determines which ActiveKit schedules to run.
+    # Middleware that determines which ActiveKit middlewares to run.
     def call(env)
       request = ActionDispatch::Request.new(env)
 
@@ -16,7 +16,7 @@ module ActiveKit
     private
 
     def activekit_runner(request, &blk)
-      ActiveKit::Loader.ensure_middleware_for!(request: request)
+      ActiveKit::Ensure.middleware_for!(request: request)
 
       yield
     end

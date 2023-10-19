@@ -5,7 +5,7 @@ module ActiveKit
   extend ActiveSupport::Autoload
 
   autoload :Activekiter
-  autoload :Loader
+  autoload :Ensure
   autoload :Middleware
   autoload :Relation
   autoload :Sequence
