@@ -2,6 +2,7 @@ module ActiveKit
   module Base
     class Ensure
       def self.middleware_for!(request:)
+        ActiveKit::Schedule::Middleware.run
       end
 
       def self.setup_for!(current_class:)
