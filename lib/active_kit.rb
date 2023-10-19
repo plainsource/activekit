@@ -6,6 +6,7 @@ module ActiveKit
 
   autoload :Activekiter
   autoload :Loader
+  autoload :Middleware
   autoload :Relation
   autoload :Sequence
 end

@@ -1,5 +1,8 @@
 module ActiveKit
   module Loader
+    def self.ensure_middleware_for!(request:)
+    end
+
     def self.ensure_setup_for!(current_class:)
       current_class.class_eval do
         unless self.reflect_on_association :activekit_association
