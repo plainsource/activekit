@@ -4,7 +4,6 @@ module ActiveKit
 
     autoload :Activekiter
     autoload :Ensure
-    autoload :Middleware
     autoload :Relation
   end
 end

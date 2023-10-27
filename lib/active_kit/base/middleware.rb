@@ -9,16 +9,14 @@ module ActiveKit
       def call(env)
         request = ActionDispatch::Request.new(env)
 
-        activekit_runner(request) do
+        activekit_run(request) do
           @app.call(env)
         end
       end
 
       private
 
-      # Here constantize is used to get the latest reloaded class as per the below link.
-      # https://guides.rubyonrails.org/autoloading_and_reloading_constants.html#use-case-3-configure-application-classes-for-engines
-      def activekit_runner(request, &blk)
+      def activekit_run(request, &blk)
         ActiveKit::Schedule::Middleware.run(request: request)
 
         yield
