@@ -5,10 +5,6 @@ module ActiveKit
         @current_class = current_class
       end
 
-      def schedule
-        @schedule ||= ActiveKit::Schedule::Schedule.new(current_class: @current_class)
-      end
-
       def sequence
         @sequence ||= ActiveKit::Sequence::Sequence.new(current_class: @current_class)
       end

@@ -17,8 +17,6 @@ module ActiveKit
       private
 
       def activekit_run(request, &blk)
-        ActiveKit::Schedule::Middleware.run(request: request)
-
         yield
       end
     end
