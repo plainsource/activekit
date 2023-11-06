@@ -6,8 +6,8 @@ Gem::Specification.new do |spec|
   spec.authors     = ["plainsource"]
   spec.email       = ["plainsource@timeboard.org"]
   spec.homepage    = "https://github.com/plainsource/activekit"
-  spec.summary     = "The essential kit for rails ActiveRecord models."
-  spec.description = "ActiveKit adds useful day-to-day features to ActiveRecord to make the rails developer happy."
+  spec.summary     = "Add useful features to ActiveRecord"
+  spec.description = "Add the essential kit for rails ActiveRecord models and be happy."
   spec.license     = "MIT"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
