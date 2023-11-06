@@ -1,5 +1,5 @@
 # ActiveKit
-Short description and motivation.
+ActiveKit adds useful day-to-day features to ActiveRecord to make the rails developer happy.
 
 ## Usage
 How to use my plugin.
