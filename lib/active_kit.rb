@@ -5,6 +5,5 @@ module ActiveKit
   extend ActiveSupport::Autoload
 
   autoload :Base
-  autoload :Schedule
   autoload :Sequence
 end
