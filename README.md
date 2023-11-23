@@ -5,9 +5,15 @@ Add the essential kit for rails ActiveRecord models and be happy.
 
 ### Position Attribute
 
-Position attribute provides positioning functionality to your model database records.
-Just create a database column in your model with type string and pass it to the position_attribute as argument inside your model.
+Add positioning to your model database records.
+Position attribute provides full positioning functionality using lexicographic ordering for your model database records.
 
+Just create a database column in your model with type :string.
+```ruby
+add_column :products, :arrangement, :string, before: :created_at
+```
+
+Then define the column name in your model like below.
 ```ruby
 class Product < ApplicationRecord
   position_attribute :arrangement
