@@ -23,7 +23,7 @@ end
 The following attribute methods will be added to your model object:
 
 ```ruby
-product = Product.create(name: "Nice Product") # Automatically adds a position to the position attribute.
+product = Product.create(name: "Nice Product") # Automatically inserts to the last position.
 product.arrangement_position
 product.arrangement_position = 1
 product.arrangement_position_in_database
