@@ -20,15 +20,18 @@ class Product < ApplicationRecord
 end
 ```
 
-The following attribute methods will be added to your model object:
-
+Creating the record will automatically set it to the last position:
 ```ruby
-product = Product.create(name: "Nice Product") # Automatically inserts to the last position.
+product = Product.create(name: "Nice Product")
+```
+
+The following attribute methods will be added to your model object to use:
+```ruby
 product.arrangement_position
 product.arrangement_position = 1
 product.arrangement_position_in_database
-product.arrangement_position_maximum
 product.arrangement_position_options
+product.arrangement_position_maximum
 ```
 
 ## Installation
