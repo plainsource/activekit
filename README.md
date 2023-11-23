@@ -8,15 +8,22 @@ Add the essential kit for rails ActiveRecord models and be happy.
 Position attribute provides positioning functionality to your model database records.
 Just create a database column in your model with type string and pass it to the position_attribute as argument inside your model.
 
-position_attribute :arrangement
+```ruby
+class Product < ApplicationRecord
+  position_attribute :arrangement
+end
+```
 
-The following attribute methods will be added to your model object.
+The following attribute methods will be added to your model object:
 
-object.arrangement_position
-object.arrangement_position = 1
-object.arrangement_position_in_database
-object.arrangement_position_maximum
-object.arrangement_position_options
+```ruby
+product = Product.create(name: "Nice Product")
+product.arrangement_position
+product.arrangement_position = 1
+product.arrangement_position_in_database
+product.arrangement_position_maximum
+product.arrangement_position_options
+```
 
 ## Installation
 Add this line to your application's Gemfile:
