@@ -5,5 +5,5 @@ module ActiveKit
   extend ActiveSupport::Autoload
 
   autoload :Base
-  autoload :Sequence
+  autoload :Position
 end
