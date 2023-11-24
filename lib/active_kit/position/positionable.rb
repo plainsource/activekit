@@ -10,6 +10,8 @@ module ActiveKit
 
       class_methods do
         def position_attribute(name, scope: {})
+          ActiveKit::Base::Ensure.setup_for!(current_class: self)
+
           attribute "#{name}_position", :integer
 
           validates name, presence: true, uniqueness: { conditions: -> { where(scope) }, case_sensitive: false, allow_blank: true }, length: { maximum: 255, allow_blank: true }
