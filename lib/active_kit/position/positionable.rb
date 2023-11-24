@@ -45,6 +45,8 @@ module ActiveKit
             end
 
             def #{name}_reposition
+              return unless (self.#{name}.blank? && self.#{name}_position.blank?) || self.#{name}_position.present?
+
               position_maximum_cached = self.#{name}_positioner.position_maximum
 
               if self.#{name}.blank? && self.#{name}_position.blank?
