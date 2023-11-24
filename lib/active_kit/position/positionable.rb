@@ -9,8 +9,13 @@ module ActiveKit
       end
 
       class_methods do
-        def position_attribute(name, scope: {})
+        def position_attribute(name, *values, **options)
+          options[:scope] = options[:scope] || {}
+
           ActiveKit::Base::Ensure.setup_for!(current_class: self)
+          self.activekit.position.add_attribute(name, options)
+
+          scope = options[:scope]
 
           attribute "#{name}_position", :integer
 
