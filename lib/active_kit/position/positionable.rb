@@ -16,7 +16,7 @@ module ActiveKit
           validates "#{name}_position", numericality: { only_integer: true, greater_than_or_equal_to: 1, less_than_or_equal_to: lambda { |record| record.public_send("#{name}_position_maximum") + 1 }, allow_blank: true }
 
           before_validation "#{name}_reposition".to_sym
-          after_commit "#{name}_rebalance".to_sym
+          after_commit "#{name}_harmonize".to_sym
 
           class_eval <<-CODE, __FILE__, __LINE__ + 1
             def #{name}_position_in_database
@@ -51,8 +51,8 @@ module ActiveKit
               end
             end
 
-            def #{name}_rebalance
-              self.#{name}_positioner.rebalance
+            def #{name}_harmonize
+              self.#{name}_positioner.harmonize
             end
 
             def #{name}_positioner

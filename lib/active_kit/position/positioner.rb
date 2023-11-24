@@ -7,7 +7,7 @@ module ActiveKit
         @scope = scope
 
         @scoped_class = @record.class.where(@scope).order("#{@name}": :asc)
-        @needs_rebalance = false
+        @needs_harmonize = false
         @positioning = Positioning.new
       end
 
@@ -29,30 +29,28 @@ module ActiveKit
 
         edge_position = position_maximum_cached + 1
         if position == edge_position && position == 1
-          value, @needs_rebalance = @positioning.chair_first
+          value, @needs_harmonize = @positioning.chair_first
         elsif position == edge_position
-          value, @needs_rebalance = @positioning.chair_below(currvalue: self.maxivalue)
+          value, @needs_harmonize = @positioning.chair_below(currvalue: self.maxivalue)
         elsif position_in_database.nil?
-          value, @needs_rebalance = @positioning.stool_above(currvalue: currvalue(position, position_maximum_cached),
+          value, @needs_harmonize = @positioning.stool_above(currvalue: currvalue(position, position_maximum_cached),
                                                              prevvalue: prevvalue(position, position_maximum_cached))
         elsif position > position_in_database
-          value, @needs_rebalance = @positioning.stool_below(currvalue: currvalue(position, position_maximum_cached),
+          value, @needs_harmonize = @positioning.stool_below(currvalue: currvalue(position, position_maximum_cached),
                                                              nextvalue: nextvalue(position, position_maximum_cached))
         else
-          value, @needs_rebalance = @positioning.stool_above(currvalue: currvalue(position, position_maximum_cached),
+          value, @needs_harmonize = @positioning.stool_above(currvalue: currvalue(position, position_maximum_cached),
                                                              prevvalue: prevvalue(position, position_maximum_cached))
         end
 
         value
       end
 
-      def rebalance
-        if @needs_rebalance
+      def harmonize
+        if @needs_harmonize
 
-          # Code to rebalance.
-          puts "ActiveKit::Position | Rebalance job added for '#{@name}'."
 
-          @needs_rebalance = false
+          @needs_harmonize = false
         end
       end
 
