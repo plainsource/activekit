@@ -8,9 +8,9 @@ Add the essential kit for rails ActiveRecord models and be happy.
 Add positioning to your model database records.
 Position attribute provides full positioning functionality using lexicographic ordering for your model database records.
 
-Just create a database column in your model with type :string.
+Just create a database column in your model with type :string with index.
 ```ruby
-add_column :products, :arrangement, :string, before: :created_at
+add_column :products, :arrangement, :string, index: true, before: :created_at
 ```
 
 Then define the column name in your model like below.
