@@ -17,6 +17,8 @@ module ActiveKit
       private
 
       def activekit_run(request, &blk)
+        ActiveKit::Position::Middleware.run(request: request)
+
         yield
       end
     end
