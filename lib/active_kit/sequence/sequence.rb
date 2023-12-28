@@ -5,33 +5,30 @@ module ActiveKit
 
       def initialize(current_class:)
         @current_class = current_class
-
         @defined_attributes = {}
-        @wordbook = Wordbook.new
       end
 
       def update(record:, attribute_name:, position:)
-        ActiveKit::Base::Ensure.has_one_association_for!(record: record)
+        sequence_attribute = ensure_association_for!(record: record, attribute_name: attribute_name)
 
         if position
-          raise "position '#{position}' is not a valid unsigned integer value greater than 0." unless position.is_a?(Integer) && position > 0
+          raise "position '#{position}' is not a valid unsigned integer value greater than 0." unless position.is_a?(Integer)
 
-          wordbook = Wordbook.new
-          word_for_position = wordbook.next_word(count: position)
-          # TODO: committer record for the attribute with given word_for_position should be found and resaved to recalculate its position.
-          # json_where = 'value->"$.sequence.attributes.' + attribute_name.to_s + '" = "' + word_for_position + '"'
-          # record_at_position = ActiveKit::Attribute.where(record_type: record.class.name).where(json_where).first&.record
-          record.activekit_association.sequence[:attributes][attribute_name.to_sym] = word_for_position
-          record.activekit_association.save!
-          # record_at_position.save! if record_at_position
-        else
-          record.activekit_association.sequence[:attributes][attribute_name.to_sym] = nil
-          record.activekit_association.save!
+          sequence_attribute.position = position
+          raise "position '#{position}' is not valid between 1 and #{sequence_attribute.position_maximum_count}." unless sequence_attribute.position_in_range?
+
+          sequence_attribute.save!
         end
       end
 
       def add_attribute(name:, options:)
-        @defined_attributes.store(name, options)
+        @defined_attributes.store(name.to_sym, options)
+      end
+
+      private
+
+      def ensure_association_for!(record:, attribute_name:)
+        record.activekit_sequence_attributes.find_by(name: attribute_name) || record.activekit_sequence_attributes.create!(name: attribute_name)
       end
     end
   end

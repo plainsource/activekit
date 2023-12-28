@@ -27,18 +27,15 @@ module ActiveKit
               activekit_sequence_attribute_#{name}.present?
             end
 
-            def #{name}=(value)
-              self.#{name}.value = value
+            def #{name}=(position)
+              self.#{name}.position = position
             end
           CODE
 
           has_one :"activekit_sequence_attribute_#{name}", -> { where(name: name) }, as: :record, inverse_of: :record, autosave: true, dependent: :destroy, strict_loading: strict_loading, class_name: "ActiveKit::SequenceAttribute"
 
           scope :"with_activekit_sequence_attribute_#{name}", -> { includes("activekit_sequence_attribute_#{name}") }
-
-          before_validation(on: :create) do
-            self.public_send(name)
-          end
+        
 
           # ActiveKit::Base::Ensure.setup_for!(current_class: self)
 
@@ -95,6 +92,32 @@ module ActiveKit
         #       end
         #       private :activekit_sequence_sequenceable_callback
         #     end
+        #   end
+        # end
+
+        # def search_base_klass(classname, updater_via)
+        #   if updater_via.blank?
+        #     classname
+        #   elsif updater_via.is_a? Symbol
+        #     reflected_klass(classname, updater_via)
+        #   elsif updater_via.is_a? Hash
+        #     klass = reflected_klass(classname, updater_via.keys.first)
+        #     updater_via.values.first.is_a?(Hash) ? search_base_klass(klass, updater_via.values.first) : reflected_klass(klass, updater_via.values.first)
+        #   end
+        # end
+
+        # def reflected_klass(classname, key)
+        #   klass = classname.constantize.reflect_on_all_associations.map { |assoc| [assoc.name, assoc.klass.name] }.to_h[key]
+        #   raise "Could not find reflected klass for classname '#{classname}' and key '#{key}' while setting sequence_attribute" unless klass
+        #   klass
+        # end
+
+        # def search_inverse_assoc(klass_object, updater_on)
+        #   if updater_on.values.first.is_a?(Hash)
+        #     klass_object = klass_object.public_send(updater_on.values.first.keys.first)
+        #     search_inverse_assoc(klass_object, updater_on.values.first)
+        #   else
+        #     klass_object.public_send(updater_on.values.first)
         #   end
         # end
       end
