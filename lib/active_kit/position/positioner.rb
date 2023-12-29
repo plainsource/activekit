@@ -4,9 +4,8 @@ module ActiveKit
       def initialize(record:, name:, scope:)
         @record = record
         @name = name
-        @scope = scope
 
-        @scoped_class = @record.class.where(@scope).order("#{@name}": :asc)
+        @scoped_class = @record.class.where(scope).order("#{@name}": :asc)
         @needs_harmonize = false
         @positioning = Positioning.new
       end
