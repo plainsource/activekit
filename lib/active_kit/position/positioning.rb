@@ -22,7 +22,7 @@ module ActiveKit
       def chair_above(currvalue:)
         currtier, currspot = currvalue.split("|").take(2)
         nicespot = (currspot.to_i(BASE) - 1).to_s(BASE).rjust(currspot.length, "0")
-        nicespot = firstspot(currspot) if nicespot.to_i(BASE) < firstspot(currspot).to_i(BASE)
+        nicespot = firstspot(currspot) if nicespot.to_i(BASE) == 0
         chair(currtier, nicespot, @initial_slot)
       end
 
