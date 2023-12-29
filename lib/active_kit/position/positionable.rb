@@ -10,7 +10,7 @@ module ActiveKit
 
       class_methods do
         def position_attribute(name, **options)
-          scope = options[:scope]
+          scope = options[:scope] || {}
 
           attribute "#{name}_position", :integer
 
