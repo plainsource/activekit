@@ -32,9 +32,9 @@ module ActiveKit
               where_offset = ["#{@name} > ?", currvalue]
             end
           end
-
-          Rails.logger.info "ActiveKit::Position | Harmonize for :#{@name}: completed."
         end
+
+        Rails.logger.info "ActiveKit::Position | Harmonize for :#{@name}: completed."
       end
     end
   end
