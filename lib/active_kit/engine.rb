@@ -4,9 +4,9 @@ module ActiveKit
     config.eager_load_namespaces << ActiveKit
 
     initializer "active_kit.add_middleware" do |app|
-      require "active_kit/base/middleware"
+      require "active_kit/position/middleware"
 
-      app.middleware.use ActiveKit::Base::Middleware
+      app.middleware.use ActiveKit::Position::Middleware
     end
 
     initializer "active_kit.position" do
