@@ -9,21 +9,16 @@ module ActiveKit
       end
 
       class_methods do
-        def position_attribute(name, *values, **options)
-          options[:scope] = options[:scope] || {}
-
-          ActiveKit::Base::Ensure.setup_for!(current_class: self)
-          self.activekit.position.add_attribute(name, options)
-
+        def position_attribute(name, **options)
           scope = options[:scope]
 
           attribute "#{name}_position", :integer
 
-          validates name, presence: true, uniqueness: { conditions: -> { where(scope) }, case_sensitive: false, allow_blank: true }, length: { maximum: 255, allow_blank: true }
+          validates "#{name}", presence: true, uniqueness: { conditions: -> { where(scope) }, case_sensitive: false, allow_blank: true }, length: { maximum: 255, allow_blank: true }
           validates "#{name}_position", numericality: { only_integer: true, greater_than_or_equal_to: 1, less_than_or_equal_to: lambda { |record| record.public_send("#{name}_position_maximum") + 1 }, allow_blank: true }
 
           before_validation "#{name}_reposition".to_sym
-          after_commit "#{name}_harmonize".to_sym
+          after_commit "#{name}_reharmonize".to_sym
 
           class_eval <<-CODE, __FILE__, __LINE__ + 1
             def #{name}_position_in_database
@@ -38,10 +33,18 @@ module ActiveKit
               self.#{name}_positioner.position_maximum
             end
 
+            def self.harmonize_#{name}!
+              ActiveKit::Position::Harmonize.new(current_class: self, name: '#{name}', scope: #{scope}).run!
+            end
+
             private
 
             def #{name}=(value)
               super(value)
+            end
+
+            def #{name}_positioner
+              @#{name}_positioner ||= ActiveKit::Position::Positioner.new(record: self, name: '#{name}', scope: #{scope})
             end
 
             def #{name}_reposition
@@ -60,12 +63,11 @@ module ActiveKit
               end
             end
 
-            def #{name}_harmonize
-              self.#{name}_positioner.harmonize
-            end
+            def #{name}_reharmonize
+              return unless self.#{name}_positioner.reharmonize?
 
-            def #{name}_positioner
-              @#{name}_positioner ||= ActiveKit::Position::Positioner.new(record: self, name: '#{name}', scope: #{scope})
+              self.class.harmonize_#{name}!
+              self.#{name}_positioner.reharmonized!
             end
           CODE
         end

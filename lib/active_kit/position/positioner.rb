@@ -6,7 +6,7 @@ module ActiveKit
         @name = name
 
         @scoped_class = @record.class.where(scope).order("#{@name}": :asc)
-        @needs_harmonize = false
+        @reharmonize = false
         @positioning = Positioning.new
       end
 
@@ -28,29 +28,29 @@ module ActiveKit
 
         edge_position = position_maximum_cached + 1
         if position == edge_position && position == 1
-          value, @needs_harmonize = @positioning.chair_first
+          value, @reharmonize = @positioning.chair_first
         elsif position == edge_position
-          value, @needs_harmonize = @positioning.chair_below(currvalue: self.maxivalue)
+          value, @reharmonize = @positioning.chair_below(currvalue: self.maxivalue)
         elsif position_in_database.nil?
-          value, @needs_harmonize = @positioning.stool_above(currvalue: currvalue(position, position_maximum_cached),
+          value, @reharmonize = @positioning.stool_above(currvalue: currvalue(position, position_maximum_cached),
                                                              prevvalue: prevvalue(position, position_maximum_cached))
         elsif position > position_in_database
-          value, @needs_harmonize = @positioning.stool_below(currvalue: currvalue(position, position_maximum_cached),
+          value, @reharmonize = @positioning.stool_below(currvalue: currvalue(position, position_maximum_cached),
                                                              nextvalue: nextvalue(position, position_maximum_cached))
         else
-          value, @needs_harmonize = @positioning.stool_above(currvalue: currvalue(position, position_maximum_cached),
+          value, @reharmonize = @positioning.stool_above(currvalue: currvalue(position, position_maximum_cached),
                                                              prevvalue: prevvalue(position, position_maximum_cached))
         end
 
         value
       end
 
-      def harmonize
-        if @needs_harmonize
+      def reharmonize?
+        @reharmonize
+      end
 
-
-          @needs_harmonize = false
-        end
+      def reharmonized!
+        @reharmonize = false
       end
 
       private

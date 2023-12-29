@@ -2,7 +2,7 @@ module ActiveKit
   module Position
     extend ActiveSupport::Autoload
 
-    autoload :Model
+    autoload :Harmonize
     autoload :Positioner
     autoload :Positioning
   end
