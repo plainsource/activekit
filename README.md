@@ -36,7 +36,7 @@ product.arrangement_position_maximum
 
 The following class methods will be added to your model class to use:
 ```ruby
-Product.activekit.position.harmonize!(:arrangement)
+Product.harmonize_arrangement!
 ```
 
 ## Installation
