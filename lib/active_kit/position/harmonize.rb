@@ -23,14 +23,16 @@ module ActiveKit
             break if records.empty?
 
             records.lock.each do |record|
-              value, needs_harmonize = @positioning.chair_above(currvalue: currvalue)
-              raise "Harmonize cannot ask to harmonize again. Please check values of attribute '#{@name}' and try again." if needs_harmonize
+              value, reharmonize = @positioning.chair_above(currvalue: currvalue)
+              raise "Harmonize cannot ask to harmonize again. Please check values of attribute '#{@name}' and try again." if reharmonize
 
               record.send("#{@name}=", value)
               record.save!
+
               currvalue = record.public_send("#{@name}")
-              where_offset = ["#{@name} > ?", currvalue]
             end
+
+            where_offset = ["#{@name} < ?", currvalue]
           end
         end
 
