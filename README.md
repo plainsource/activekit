@@ -8,7 +8,7 @@ Add the essential kit for rails ActiveRecord models and be happy.
 Add positioning to your ActiveRecord models.
 Position Attribute provides full positioning functionality using lexicographic ordering for your model database records.
 
-You can add multiple position attributes in one model to store different arrangements.
+You can also add multiple position attributes in one model to store different arrangements.
 
 Just create a database column in your model with type :string with index.
 ```ruby
