@@ -13,10 +13,11 @@ module ActiveKit
         chair(@initial_tier, @initial_spot, @initial_slot)
       end
 
-      def chair_at(no:, increase_length_by: 0)
-        nicespot = no.to_s(BASE)
-        nicespot = nicespot.rjust(nicespot.length + increase_length_by, "0")
-        chair(@initial_tier, nicespot, @initial_slot)
+      def chair_at(position:, tier_no:, total_count:, increase_spot_length_by:)
+        nicetire = "t#{tier_no}"
+        nicespot = (position - 1).to_s(BASE)
+        nicespot = nicespot.rjust((total_count - 1).to_s(BASE).length + increase_spot_length_by, "0")
+        chair(nicetire, nicespot, @initial_slot)
       end
 
       def chair_above(currvalue:)

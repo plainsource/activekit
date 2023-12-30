@@ -29,16 +29,16 @@ product = Product.create(name: "Nice Product")
 
 The following attribute methods will be added to your model object to use:
 ```ruby
-product.arrangement_position
-product.arrangement_position = 1
-product.arrangement_position_in_database
-product.arrangement_position_options
-product.arrangement_position_maximum
+product.arrangement_position = 1 # Set the position
+product.arrangement_position # Access the manually set position
+product.arrangement_position_in_database # Check the position as per database
+product.arrangement_position_options # Can be used in dropdown
+product.arrangement_position_maximum # Check current maximum position
 ```
 
 The following class methods will be added to your model class to use:
 ```ruby
-Product.harmonize_arrangement!
+Product.harmonize_arrangement! # Run this if a database table already has existing rows. Also can be used to manually harmonize a position column.
 ```
 
 ## Installation
