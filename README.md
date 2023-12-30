@@ -38,7 +38,9 @@ product.arrangement_position_maximum # Check current maximum position
 
 The following class methods will be added to your model class to use:
 ```ruby
-Product.harmonize_arrangement! # Run this if a database table already has existing rows. Also can be used to manually harmonize a position column.
+# If a database table already has existing rows, run this to set initial values.
+# You can also run this to manually harmonize a position attribute column.
+Product.harmonize_arrangement!
 ```
 
 ## Installation
