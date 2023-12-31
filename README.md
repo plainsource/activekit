@@ -12,7 +12,8 @@ You can also add multiple position attributes in one model to store different ar
 
 Just create a database column in your model with type :string with index.
 ```ruby
-add_column :products, :arrangement, :string, index: true, before: :created_at
+add_column :products, :arrangement, :string
+add_index  :products, :arrangement
 ```
 
 Then define the column name in your model like below.
