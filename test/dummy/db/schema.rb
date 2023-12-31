@@ -15,11 +15,9 @@ ActiveRecord::Schema.define(version: 2023_11_16_081651) do
   create_table "products", force: :cascade do |t|
     t.string "name"
     t.string "arrangement"
-    t.string "booking_date_arrangement"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["arrangement"], name: "index_products_on_arrangement"
-    t.index ["booking_date_arrangement"], name: "index_products_on_booking_date_arrangement"
   end
 
 end
