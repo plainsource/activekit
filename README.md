@@ -10,7 +10,7 @@ Position Attribute provides full positioning functionality using lexicographic o
 
 You can also add multiple position attributes in one model to store different arrangements.
 
-Just create a database column in your model with type :string with index.
+Just create a database column in your model with type :string having an index.
 ```ruby
 add_column :products, :arrangement, :string
 add_index  :products, :arrangement
