@@ -5,7 +5,7 @@ module ActiveKit
         @record = record
         @name = name
 
-        @scoped_class = @record.class.where(scope).order("#{@name}": :asc)
+        @scoped_class = @record.class.where(scope).reorder("#{@name}": :asc)
         @reharmonize = false
         @positioning = Positioning.new
       end
