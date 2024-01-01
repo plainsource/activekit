@@ -42,7 +42,7 @@ module ActiveKit
       private
 
       def control
-        records = @scoped_class.where.not("#{@name}": nil).order("#{@name}": :asc, id: :asc).select(@name.to_sym)
+        records = @scoped_class.where.not("#{@name}": nil).reorder("#{@name}": :asc, id: :asc).select(@name.to_sym)
         headtier = records.first&.try(@name.to_sym)&.split("|")&.first&.last&.to_i # returns a tire integer
         foottier = records.last&.try(@name.to_sym)&.split("|")&.first&.last&.to_i # returns a tire integer
 
@@ -54,7 +54,7 @@ module ActiveKit
         end
         scoped_order, chair_method, offset_operator = (ordering == :head_to_foot) ? [:asc, :chair_below, ">"] : [:desc, :chair_above, "<"]
 
-        scoped_class_with_order = @scoped_class.order("#{@name}": scoped_order, id: scoped_order)
+        scoped_class_with_order = @scoped_class.reorder("#{@name}": scoped_order, id: scoped_order)
         scoped_class_with_order_count = scoped_class_with_order.count
         initial_position = (ordering == :head_to_foot) ? 1 : scoped_class_with_order_count
 
