@@ -4,7 +4,6 @@ require "active_kit/engine"
 module ActiveKit
   extend ActiveSupport::Autoload
 
-  autoload :Base
+  autoload :Position
   autoload :Schedule
-  autoload :Sequence
 end

@@ -1,22 +1,23 @@
 module ActiveKit
-  module Base
+  module Position
     class Middleware
       def initialize(app)
         @app = app
       end
 
-      # Middleware that determines which ActiveKit middlewares to run.
       def call(env)
         request = ActionDispatch::Request.new(env)
 
-        activekit_run(request) do
+        middleware_run(request) do
           @app.call(env)
         end
       end
 
       private
 
-      def activekit_run(request, &blk)
+      def middleware_run(request, &blk)
+        # Position middleware code
+
         yield
       end
     end
