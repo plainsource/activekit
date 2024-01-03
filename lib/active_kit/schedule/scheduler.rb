@@ -1,6 +1,6 @@
 module ActiveKit
   module Schedule
-    class Schedule
+    class Scheduler
       attr_reader :defined_attributes
 
       def initialize(current_class:)
