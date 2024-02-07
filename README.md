@@ -47,7 +47,7 @@ Product.harmonize_arrangement!
 ### Schedule Attribute
 
 Add scheduling to your ActiveRecord models.
-Schedule Attribute provides full scheduling functionality for your model database records to schedule one-time, recurring or run-later methods for each record.
+Schedule Attribute provides full scheduling functionality to schedule one-time, recurring or run-later methods for your model database records.
 
 You can also add multiple schedule attributes in one model to run multiple schedules.
 
@@ -85,7 +85,7 @@ class Product < ApplicationRecord
 end
 ```
 
-Creating the record will set the schedule attribute value to nil which signifies method is not scheduled:
+Creating the record will set the schedule attribute value to nil which signifies that the related method is not scheduled:
 ```ruby
 product = Product.create(name: "Nice Product")
 ```
@@ -105,7 +105,7 @@ add_column :products, :rearrangement_method, :string
 
 If you want to schedule a method that handles multiple records together, you can create a scheduler.
 
-Create a model named Scheduler. Any other model name can also be used.
+Create a model named Scheduler. If you like, you can use another model name as per your context.
 ```sh
 rails g model Scheduler
 ```
@@ -146,7 +146,7 @@ Create a scheduler and it will be picked up to run automagically after the speci
 scheduler = Scheduler.create(schedule_at: DateTime.current + 2.hours, schedule_method: :method_name1)
 ```
 
-Any number of schedulers can be added with each having a value for schedule_at and schedule_method. Hope you have fun.
+Any number of schedulers can be added with each having a value for schedule_at and schedule_method. Hope you have fun using it.
 
 ## Installation
 Add this line to your application's Gemfile:
