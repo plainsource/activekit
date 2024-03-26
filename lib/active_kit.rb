@@ -4,5 +4,6 @@ require "active_kit/engine"
 module ActiveKit
   extend ActiveSupport::Autoload
 
+  autoload :Export
   autoload :Position
 end

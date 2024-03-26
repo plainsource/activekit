@@ -9,10 +9,12 @@ module ActiveKit
       app.middleware.use ActiveKit::Position::Middleware
     end
 
-    initializer "active_kit.position" do
+    initializer "active_kit.activekitable" do
+      require "active_kit/export/exportable"
       require "active_kit/position/positionable"
 
       ActiveSupport.on_load(:active_record) do
+        include ActiveKit::Export::Exportable
         include ActiveKit::Position::Positionable
       end
     end
