@@ -13,132 +13,55 @@ module ActiveKit
           @exporter ||= ActiveKit::Export::Exporter.new(current_class: self)
         end
 
-        def export_attribute(name, **options)
+        def export_describer(name, **options)
+          name = name.to_sym
           options.deep_symbolize_keys!
-          define_exporter_methods unless exporter.attributes_present?
-          exporter.add_attribute(name: name, options: options)
-        end
 
-        def define_exporter_methods
-          define_singleton_method :to_csv do
-            # The 'all' relation must be captured outside the Enumerator,
-            # else it will get reset to all the records of the class.
-            all_activerecord_relation = all.includes(includes)
-
-            Enumerator.new do |yielder|
-              ActiveRecord::Base.connected_to(role: :writing, shard: System::Current.tenant.database.to_sym) do
-                # Add the header.
-                if header
-                  # headings = []
-                  # fields.each do |key, value|
-                  #   headings << self.exportable_headings(self, key, value)
-                  # end
-                  # puts headings.inspect
-                  # puts headings.flatten.inspect
-                  # yielder << CSV.generate_line(headings.flatten)
-                end
-
-                # Add the values.
-                # find_each will ignore any order if set earlier.
-                all_activerecord_relation.find_each do |row|
-                  lines = []
-
-                  # new_lines = []
-                  # fields.each do |key, value|
-                  #   new_lines << self.exportable_lines(self, key, value, row)
-                  # end
-                  # puts new_lines.inspect
-                  # puts "kajlsdlakjsdlaksdjlaksdjlaksjdas"
-
-                  # row_assoc1 = row_assoc2 = nil
-                  # line = fields.values.map do |field_value|
-                  #   if field_value.is_a? Hash
-                  #     row_assoc1 = row.try(field_value.key)
-                  #     if field_value.value.is_a? Hash
-                  #       row_assoc2 = row.try(field_value.value.key)
-                  #       row_assoc2&.instance_eval(field_value.value.value.to_s)
-                  #     else
-                  #       row_assoc1&.instance_eval(field_value.value.to_s)
-                  #     end
-                  #   else
-                  #     row.instance_eval(field_value.to_s)
-                  #   end
-                  # end
-                  # fields.values.map { |value| row.instance_eval(value) }
-
-                  lines.each do |line|
-                    yielder << CSV.generate_line(line)
-                  end
-                end
-              end
-            end
+          unless exporter.find_by(describer_name: name)
+            exporter.new_describer(name: name, options: options)
+            define_describer_method(kind: options[:kind], name: name)
           end
         end
 
-        def has_exports1(params)
-          params.each do |kind, details|
-            if kind == :csv
+        def export_attribute(name, **options)
+          export_describer(:to_csv, kind: :csv, database: -> { ActiveRecord::Base.connection_db_config.database.to_sym }) unless exporter.describers?
 
-              define_singleton_method :exportable_headings do |klass, key, value, parent_heading = nil|
-                heading = (parent_heading.present? && key.present?) ? "#{parent_heading.to_s} #{key.to_s}" :
-                            (parent_heading.present? ? parent_heading.to_s : key.to_s)
+          options.deep_symbolize_keys!
+          exporter.new_attribute(name: name.to_sym, options: options)
+        end
 
-                if value.is_a?(String) || value.is_a?(Symbol)
-                  heading
-                elsif value.is_a?(Hash)
-                  multiple_headings = []
-                  value.each do |nested_key, nested_value|
-                    if nested_key.is_a?(Symbol)
-                      nested_key_reflection = klass.reflect_on_association(nested_key)
-                      case nested_key_reflection&.macro
-                      when :has_many
-                        multiple_headings << self.exportable_headings(nested_key_reflection.klass, nil, nested_value, heading)
-                      when :has_one
-                        multiple_headings << self.exportable_headings(nested_key_reflection.klass, nil, nested_value, heading)
-                      when :belongs_to
-                        multiple_headings << self.exportable_headings(klass, nil, nested_value, heading)
+        def define_describer_method(kind:, name:)
+          case kind
+          when :csv
+            define_singleton_method name do
+              describer = exporter.find_by(describer_name: name)
+              raise "could not find describer for the describer name '#{name}'" unless describer.present?
+
+              # The 'all' relation must be captured outside the Enumerator,
+              # else it will get reset to all the records of the class.
+              all_activerecord_relation = all.includes(describer.includes)
+
+              Enumerator.new do |yielder|
+                ActiveRecord::Base.connected_to(role: :writing, shard: describer.database.call) do
+                  # Add the headings.
+                  yielder << CSV.generate_line(describer.fields.keys) if describer.fields.keys.present?
+
+                  # Add the values.
+                  # find_each will ignore any order if set earlier.
+                  all_activerecord_relation.find_each do |record|
+                    line = describer.fields.map do |heading, value|
+                      if value.is_a? Proc
+                        value&.call(record)
+                      elsif value.is_a? Symbol
+                        record.public_send(value)
+                      elsif value.is_a? String
+                        record.public_send(value)
                       else
-                        multiple_headings << self.exportable_headings(klass, nil, nested_value, heading)
+                        raise "Could not identify '#{value}' for '#{heading}'."
                       end
-                    else
-                      multiple_headings << self.exportable_headings(klass, nested_key, nested_value, heading)
                     end
+                    yielder << CSV.generate_line(line)
                   end
-                  multiple_headings
-                else
-                  raise "Invalid value provided for exporting key #{key}."
-                end
-              end
-
-              define_singleton_method :exportable_lines do |klass, key, value, record|
-                if value.is_a?(String) || value.is_a?(Symbol)
-                  record&.instance_eval(value.to_s)
-                elsif value.is_a?(Hash)
-                  multiple_lines = []
-                  value.each do |nested_key, nested_value|
-                    if nested_key.is_a?(Symbol)
-                      nested_key_reflection = klass.reflect_on_association(nested_key)
-                      case nested_key_reflection&.macro
-                      when :has_many
-                        nested_rows = []
-                        record.try(nested_key).each do |nested_record|
-                          nested_rows << self.exportable_lines(nested_key_reflection.klass, nil, nested_value, nested_record)
-                        end
-                        multiple_lines << nested_rows
-                      when :has_one
-                        multiple_lines << self.exportable_lines(nested_key_reflection.klass, nil, nested_value, record.try(nested_key))
-                      when :belongs_to
-                        multiple_lines << self.exportable_lines(klass, nil, nested_value, record.try(nested_key))
-                      else
-                        multiple_lines << self.exportable_lines(klass, nil, nested_value, record.try(nested_key))
-                      end
-                    else
-                      multiple_lines << self.exportable_lines(klass, nested_key, nested_value, record)
-                    end
-                  end
-                  multiple_lines
-                else
-                  raise "Invalid value provided for exporting key #{key}."
                 end
               end
             end
