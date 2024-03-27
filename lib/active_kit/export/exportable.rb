@@ -17,7 +17,7 @@ module ActiveKit
           name = name.to_sym
           options.deep_symbolize_keys!
 
-          unless exporter.find_by(describer_name: name)
+          unless exporter.find_describer_by(describer_name: name)
             exporter.new_describer(name: name, options: options)
             define_describer_method(kind: options[:kind], name: name)
           end
@@ -34,7 +34,7 @@ module ActiveKit
           case kind
           when :csv
             define_singleton_method name do
-              describer = exporter.find_by(describer_name: name)
+              describer = exporter.find_describer_by(describer_name: name)
               raise "could not find describer for the describer name '#{name}'" unless describer.present?
 
               # The 'all' relation must be captured outside the Enumerator,
