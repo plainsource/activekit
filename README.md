@@ -6,9 +6,9 @@ Add the essential kit for rails ActiveRecord models and be happy.
 ### Export Attribute
 
 Add exporting to your ActiveRecord models.
-Export Attribute provides full exporting functionality using for your model database records.
+Export Attribute provides full exporting functionality for your model database records.
 
-You can define as many export attributes along with any association attributes in one model to export.
+You can define any number of model attributes and association attributes in one model to export together.
 
 Then define the column name in your model like below.
 ```ruby
