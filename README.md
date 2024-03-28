@@ -10,19 +10,25 @@ Export Attribute provides full exporting functionality for your model database r
 
 You can define any number of model attributes and association attributes in one model to export together.
 
-Then define the column name in your model like below.
+Define the export attributes in accordance with the column name in your model like below.
 ```ruby
 class Product < ApplicationRecord
   export_attribute :name
+  export_attribute :sku, heading: "SKU No."
+  export_attribute :image_name, value: lambda { |record| record.image&.name }, includes: :image
+  export_attribute :variations, value: lambda { |record| record.variations }, includes: :variations, attributes: [:name, :price, discount_value: { heading: "Discount" }]
 end
 ```
 
 You can also define an export_describer to describe the details of the export instead of using the defaults.
 ```ruby
 class Product < ApplicationRecord
-  # export_describer method_name, kind: :csv, database: -> { database_name }
+  # export_describer method_name, kind: :csv, database: -> { ActiveRecord::Base.connection_db_config.database.to_sym }
   export_describer :to_csv, kind: :csv, database: -> { System::Current.tenant.database.to_sym }
   export_attribute :name
+  export_attribute :sku, heading: "SKU No."
+  export_attribute :image_name, value: lambda { |record| record.image&.name }, includes: :image
+  export_attribute :variations, value: lambda { |record| record.variations }, includes: :variations, attributes: [:name, :price, discount_value: { heading: "Discount" }]
 end
 ```
 
