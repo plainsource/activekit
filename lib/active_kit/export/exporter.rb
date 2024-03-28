@@ -57,7 +57,7 @@ module ActiveKit
           enclosed_attributes = Array(options.dig(:attributes))
 
           if enclosed_attributes.blank?
-            field_key, field_value = (options.dig(:heading)&.to_s || name.to_s.titleize), (options.dig(:value) || name)
+            field_key, field_value = (get_heading(options.dig(:heading))&.to_s || name.to_s.titleize), (options.dig(:value) || name)
           else
             field_key, field_value = get_nested_field(name, options, enclosed_attributes)
           end
@@ -69,7 +69,7 @@ module ActiveKit
 
       def get_nested_field(name, options, enclosed_attributes, ancestor_heading = nil)
         parent_heading = ancestor_heading.present? ? ancestor_heading : ""
-        parent_heading += (options.dig(:heading)&.to_s || name.to_s.singularize.titleize) + " "
+        parent_heading += (get_heading(options.dig(:heading))&.to_s || name.to_s.singularize.titleize) + " "
         parent_value = options.dig(:value) || name
 
         enclosed_attributes.inject([[], [parent_value]]) do |nested_field, enclosed_attribute|
@@ -83,7 +83,7 @@ module ActiveKit
             enclosed_attribute.each do |enclosed_attribute_key, enclosed_attribute_value|
               wrapped_attributes = Array(enclosed_attribute_value.dig(:attributes))
               if wrapped_attributes.blank?
-                nested_field_key = parent_heading + (enclosed_attribute_value.dig(:heading)&.to_s || enclosed_attribute_key.to_s.titleize)
+                nested_field_key = parent_heading + (get_heading(enclosed_attribute_value.dig(:heading))&.to_s || enclosed_attribute_key.to_s.titleize)
                 nested_field_val = enclosed_attribute_value.dig(:value) || enclosed_attribute_key
               else
                 nested_field_key, nested_field_val = get_nested_field(enclosed_attribute_key, enclosed_attribute_value, wrapped_attributes, parent_heading)
@@ -96,6 +96,10 @@ module ActiveKit
 
           nested_field
         end
+      end
+
+      def get_heading(options_heading)
+        options_heading.is_a?(Proc) ? options_heading.call(@current_class) : options_heading
       end
     end
   end
