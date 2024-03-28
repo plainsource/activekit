@@ -43,24 +43,16 @@ module ActiveKit
 
               Enumerator.new do |yielder|
                 ActiveRecord::Base.connected_to(role: :writing, shard: describer.database.call) do
+                  exporting = exporter.new_exporting(describer: describer)
+
                   # Add the headings.
-                  yielder << CSV.generate_line(describer.fields.keys) if describer.fields.keys.present?
+                  yielder << CSV.generate_line(exporting.headings) if exporting.headings?
 
                   # Add the values.
                   # find_each will ignore any order if set earlier.
                   all_activerecord_relation.find_each do |record|
-                    line = describer.fields.map do |heading, value|
-                      if value.is_a? Proc
-                        value&.call(record)
-                      elsif value.is_a? Symbol
-                        record.public_send(value)
-                      elsif value.is_a? String
-                        record.public_send(value)
-                      else
-                        raise "Could not identify '#{value}' for '#{heading}'."
-                      end
-                    end
-                    yielder << CSV.generate_line(line)
+                    lines = exporting.lines_for(record: record)
+                    lines.each { |line| yielder << CSV.generate_line(line) }
                   end
                 end
               end

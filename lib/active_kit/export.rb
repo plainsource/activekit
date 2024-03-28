@@ -3,5 +3,6 @@ module ActiveKit
     extend ActiveSupport::Autoload
 
     autoload :Exporter
+    autoload :Exporting
   end
 end
