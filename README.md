@@ -32,7 +32,7 @@ class Product < ApplicationRecord
 end
 ```
 
-The following class methods will be added to your model class to use:
+The following class methods will be added to your model class to use in accordance with details of export_describer:
 ```ruby
 Product.to_csv
 ```
