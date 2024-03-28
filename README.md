@@ -3,6 +3,34 @@ Add the essential kit for rails ActiveRecord models and be happy.
 
 ## Usage
 
+### Export Attribute
+
+Add exporting to your ActiveRecord models.
+Export Attribute provides full exporting functionality using for your model database records.
+
+You can define as many export attributes along with any association attributes in one model to export.
+
+Then define the column name in your model like below.
+```ruby
+class Product < ApplicationRecord
+  export_attribute :name
+end
+```
+
+You can also define an export_describer to describe the details of the export instead of using the defaults.
+```ruby
+class Product < ApplicationRecord
+  # export_describer method_name, kind: :csv, database: -> { database_name }
+  export_describer :to_csv, kind: :csv, database: -> { System::Current.tenant.database.to_sym }
+  export_attribute :name
+end
+```
+
+The following class methods will be added to your model class to use:
+```ruby
+Product.to_csv
+```
+
 ### Position Attribute
 
 Add positioning to your ActiveRecord models.
