@@ -19,7 +19,7 @@ module ActiveKit
 
           unless exporter.find_describer_by(describer_name: name)
             exporter.new_describer(name: name, options: options)
-            define_describer_method(kind: options[:kind], name: name)
+            define_export_describer_method(kind: options[:kind], name: name)
           end
         end
 
@@ -30,7 +30,7 @@ module ActiveKit
           exporter.new_attribute(name: name.to_sym, options: options)
         end
 
-        def define_describer_method(kind:, name:)
+        def define_export_describer_method(kind:, name:)
           case kind
           when :csv
             define_singleton_method name do
