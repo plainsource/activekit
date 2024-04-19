@@ -6,4 +6,5 @@ module ActiveKit
 
   autoload :Export
   autoload :Position
+  autoload :Search
 end
