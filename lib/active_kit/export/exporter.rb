@@ -13,7 +13,8 @@ module ActiveKit
         unless find_describer_by(describer_name: name)
           options.store(:attributes, {})
           @describers.store(name, options)
-          define_describer_method(kind: options[:kind], name: name)
+          describer = find_describer_by(describer_name: name)
+          define_describer_method(describer)
         end
       end
 
@@ -34,14 +35,11 @@ module ActiveKit
 
       private
 
-      def define_describer_method(kind:, name:)
-        case kind
+      def define_describer_method(describer)
+        case describer.kind
         when :csv
           @current_class.class_eval do
-            define_singleton_method name do
-              describer = exporter.find_describer_by(describer_name: name)
-              raise "could not find describer for the describer name '#{name}'" unless describer.present?
-
+            define_singleton_method describer.name do
               # The 'all' relation must be captured outside the Enumerator,
               # else it will get reset to all the records of the class.
               all_activerecord_relation = all.includes(describer.includes)
