@@ -1,41 +1,33 @@
 module ActiveKit
   module Export
     class Exporter
-      attr_reader :describers
-
       def initialize(current_class:)
         @current_class = current_class
         @describers = {}
       end
 
-      def find_describer_by(describer_name:)
-        describer_options = @describers.dig(describer_name)
-        return nil unless describer_options.present?
+      def create_describer(name, options)
+        name = name.to_sym
+        options.deep_symbolize_keys!
 
-        describer_attributes = describer_options[:attributes]
-        includes = describer_attributes.values.map { |options| options.dig(:includes) }.compact.flatten(1).uniq
-        fields = build_describer_fields(describer_attributes)
-        hash = {
-          name: describer_name,
-          kind: describer_options[:kind],
-          database: describer_options[:database],
-          attributes: describer_attributes,
-          includes: includes,
-          fields: fields
-        }
-        OpenStruct.new(hash)
+        unless find_describer_by(name: name)
+          options.store(:attributes, {})
+          @describers.store(name, options)
+          @current_class.class_eval do
+            define_singleton_method name do
+              if describer = exporter.find_describer_by(name: name)
+                export_describer_method(describer)
+              end
+            end
+          end
+        end
       end
 
-      def new_describer(name:, options:)
-        options.store(:attributes, {})
-        @describers.store(name, options)
-      end
+      def create_attribute(name, options)
+        options.deep_symbolize_keys!
 
-      def describers?
-        @describers.present?
-      end
+        create_describer(:to_csv, kind: :csv, database: -> { ActiveRecord::Base.connection_db_config.database.to_sym }) unless @describers.present?
 
-      def new_attribute(name:, options:)
         describer_names = Array(options.delete(:describers))
         describer_names = @describers.keys if describer_names.blank?
 
@@ -44,6 +36,21 @@ module ActiveKit
             describer_options[:attributes].store(name, options)
           end
         end
+      end
+
+      def find_describer_by(name:)
+        options = @describers.dig(name)
+        return nil unless options.present?
+
+        hash = {
+          name: name,
+          kind: options[:kind],
+          database: options[:database],
+          attributes: options[:attributes],
+          includes: options[:attributes].values.map { |options| options.dig(:includes) }.compact.flatten(1).uniq,
+          fields: build_describer_fields(options[:attributes])
+        }
+        OpenStruct.new(hash)
       end
 
       def new_exporting(describer:)
