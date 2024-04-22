@@ -6,22 +6,27 @@ module ActiveKit
         @describers = {}
       end
 
-      def create_export_describer(name, options)
+      def create_describer(name, options)
         name = name.to_sym
         options.deep_symbolize_keys!
 
         unless find_describer_by(describer_name: name)
           options.store(:attributes, {})
           @describers.store(name, options)
-          describer = find_describer_by(describer_name: name)
-          define_describer_method(describer)
+          if describer = find_describer_by(describer_name: name)
+            @current_class.class_eval do
+              define_singleton_method describer.name do
+                exporter.describer_method(describer)
+              end
+            end
+          end
         end
       end
 
-      def create_export_attribute(name, options)
-        create_export_describer(:to_csv, kind: :csv, database: -> { ActiveRecord::Base.connection_db_config.database.to_sym }) unless @describers.present?
-
+      def create_attribute(name, options)
         options.deep_symbolize_keys!
+
+        create_describer(:to_csv, kind: :csv, database: -> { ActiveRecord::Base.connection_db_config.database.to_sym }) unless @describers.present?
 
         describer_names = Array(options.delete(:describers))
         describer_names = @describers.keys if describer_names.blank?
@@ -33,40 +38,32 @@ module ActiveKit
         end
       end
 
-      private
-
-      def define_describer_method(describer)
+      def describer_method(describer)
         case describer.kind
         when :csv
-          @current_class.class_eval do
-            define_singleton_method describer.name do
-              # The 'all' relation must be captured outside the Enumerator,
-              # else it will get reset to all the records of the class.
-              all_activerecord_relation = all.includes(describer.includes)
+          # The 'all' relation must be captured outside the Enumerator,
+          # else it will get reset to all the records of the class.
+          all_activerecord_relation = all.includes(describer.includes)
 
-              Enumerator.new do |yielder|
-                ActiveRecord::Base.connected_to(role: :writing, shard: describer.database.call) do
-                  exporting = exporter.new_exporting(describer: describer)
+          Enumerator.new do |yielder|
+            ActiveRecord::Base.connected_to(role: :writing, shard: describer.database.call) do
+              exporting = Exporting.new(describer: describer)
 
-                  # Add the headings.
-                  yielder << CSV.generate_line(exporting.headings) if exporting.headings?
+              # Add the headings.
+              yielder << CSV.generate_line(exporting.headings) if exporting.headings?
 
-                  # Add the values.
-                  # find_each will ignore any order if set earlier.
-                  all_activerecord_relation.find_each do |record|
-                    lines = exporting.lines_for(record: record)
-                    lines.each { |line| yielder << CSV.generate_line(line) }
-                  end
-                end
+              # Add the values.
+              # find_each will ignore any order if set earlier.
+              all_activerecord_relation.find_each do |record|
+                lines = exporting.lines_for(record: record)
+                lines.each { |line| yielder << CSV.generate_line(line) }
               end
             end
           end
         end
       end
 
-      def new_exporting(describer:)
-        Exporting.new(describer: describer)
-      end
+      private
 
       def find_describer_by(describer_name:)
         describer_options = @describers.dig(describer_name)

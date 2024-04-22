@@ -14,11 +14,11 @@ module ActiveKit
         end
 
         def export_describer(name, **options)
-          exporter.create_export_describer(name, options)
+          exporter.create_describer(name, options)
         end
 
         def export_attribute(name, **options)
-          exporter.create_export_attribute(name, options)
+          exporter.create_attribute(name, options)
         end
       end
     end
