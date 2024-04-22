@@ -8,6 +8,68 @@ module ActiveKit
         @describers = {}
       end
 
+      def create_export_describer(name, options)
+        name = name.to_sym
+        options.deep_symbolize_keys!
+
+        unless find_describer_by(describer_name: name)
+          options.store(:attributes, {})
+          @describers.store(name, options)
+          define_describer_method(kind: options[:kind], name: name)
+        end
+      end
+
+      def create_export_attribute(name, options)
+        create_export_describer(:to_csv, kind: :csv, database: -> { ActiveRecord::Base.connection_db_config.database.to_sym }) unless @describers.present?
+
+        options.deep_symbolize_keys!
+
+        describer_names = Array(options.delete(:describers))
+        describer_names = @describers.keys if describer_names.blank?
+
+        describer_names.each do |describer_name|
+          if describer_options = @describers.dig(describer_name)
+            describer_options[:attributes].store(name, options)
+          end
+        end
+      end
+
+      private
+
+      def define_describer_method(kind:, name:)
+        case kind
+        when :csv
+          define_singleton_method name do
+            describer = exporter.find_describer_by(describer_name: name)
+            raise "could not find describer for the describer name '#{name}'" unless describer.present?
+
+            # The 'all' relation must be captured outside the Enumerator,
+            # else it will get reset to all the records of the class.
+            all_activerecord_relation = all.includes(describer.includes)
+
+            Enumerator.new do |yielder|
+              ActiveRecord::Base.connected_to(role: :writing, shard: describer.database.call) do
+                exporting = exporter.new_exporting(describer: describer)
+
+                # Add the headings.
+                yielder << CSV.generate_line(exporting.headings) if exporting.headings?
+
+                # Add the values.
+                # find_each will ignore any order if set earlier.
+                all_activerecord_relation.find_each do |record|
+                  lines = exporting.lines_for(record: record)
+                  lines.each { |line| yielder << CSV.generate_line(line) }
+                end
+              end
+            end
+          end
+        end
+      end
+
+      def new_exporting(describer:)
+        Exporting.new(describer: describer)
+      end
+
       def find_describer_by(describer_name:)
         describer_options = @describers.dig(describer_name)
         return nil unless describer_options.present?
@@ -25,32 +87,6 @@ module ActiveKit
         }
         OpenStruct.new(hash)
       end
-
-      def new_describer(name:, options:)
-        options.store(:attributes, {})
-        @describers.store(name, options)
-      end
-
-      def describers?
-        @describers.present?
-      end
-
-      def new_attribute(name:, options:)
-        describer_names = Array(options.delete(:describers))
-        describer_names = @describers.keys if describer_names.blank?
-
-        describer_names.each do |describer_name|
-          if describer_options = @describers.dig(describer_name)
-            describer_options[:attributes].store(name, options)
-          end
-        end
-      end
-
-      def new_exporting(describer:)
-        Exporting.new(describer: describer)
-      end
-
-      private
 
       def build_describer_fields(describer_attributes)
         describer_attributes.inject({}) do |fields_hash, (name, options)|
