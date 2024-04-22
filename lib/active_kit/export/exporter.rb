@@ -13,10 +13,10 @@ module ActiveKit
         unless find_describer_by(describer_name: name)
           options.store(:attributes, {})
           @describers.store(name, options)
-          if describer = find_describer_by(describer_name: name)
-            @current_class.class_eval do
-              define_singleton_method describer.name do
-                exporter.describer_method(describer)
+          @current_class.class_eval do
+            define_singleton_method name do
+              if describer = exporter.find_describer_by(describer_name: name)
+                export_describer_method(describer)
               end
             end
           end
@@ -38,50 +38,26 @@ module ActiveKit
         end
       end
 
-      def describer_method(describer)
-        case describer.kind
-        when :csv
-          # The 'all' relation must be captured outside the Enumerator,
-          # else it will get reset to all the records of the class.
-          all_activerecord_relation = all.includes(describer.includes)
+      def find_describer_by(name:)
+        options = @describers.dig(name)
+        return nil unless options.present?
 
-          Enumerator.new do |yielder|
-            ActiveRecord::Base.connected_to(role: :writing, shard: describer.database.call) do
-              exporting = Exporting.new(describer: describer)
-
-              # Add the headings.
-              yielder << CSV.generate_line(exporting.headings) if exporting.headings?
-
-              # Add the values.
-              # find_each will ignore any order if set earlier.
-              all_activerecord_relation.find_each do |record|
-                lines = exporting.lines_for(record: record)
-                lines.each { |line| yielder << CSV.generate_line(line) }
-              end
-            end
-          end
-        end
-      end
-
-      private
-
-      def find_describer_by(describer_name:)
-        describer_options = @describers.dig(describer_name)
-        return nil unless describer_options.present?
-
-        describer_attributes = describer_options[:attributes]
-        includes = describer_attributes.values.map { |options| options.dig(:includes) }.compact.flatten(1).uniq
-        fields = build_describer_fields(describer_attributes)
         hash = {
-          name: describer_name,
-          kind: describer_options[:kind],
-          database: describer_options[:database],
-          attributes: describer_attributes,
-          includes: includes,
-          fields: fields
+          name: name,
+          kind: options[:kind],
+          database: options[:database],
+          attributes: options[:attributes],
+          includes: options[:attributes].values.map { |options| options.dig(:includes) }.compact.flatten(1).uniq,
+          fields: build_describer_fields(options[:attributes])
         }
         OpenStruct.new(hash)
       end
+
+      def new_exporting(describer:)
+        Exporting.new(describer: describer)
+      end
+
+      private
 
       def build_describer_fields(describer_attributes)
         describer_attributes.inject({}) do |fields_hash, (name, options)|
