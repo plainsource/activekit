@@ -1,8 +1,6 @@
 module ActiveKit
   module Export
     class Exporter
-      attr_reader :describers
-
       def initialize(current_class:)
         @current_class = current_class
         @describers = {}
@@ -39,26 +37,28 @@ module ActiveKit
       def define_describer_method(kind:, name:)
         case kind
         when :csv
-          define_singleton_method name do
-            describer = exporter.find_describer_by(describer_name: name)
-            raise "could not find describer for the describer name '#{name}'" unless describer.present?
+          @current_class.class_eval do
+            define_singleton_method name do
+              describer = exporter.find_describer_by(describer_name: name)
+              raise "could not find describer for the describer name '#{name}'" unless describer.present?
 
-            # The 'all' relation must be captured outside the Enumerator,
-            # else it will get reset to all the records of the class.
-            all_activerecord_relation = all.includes(describer.includes)
+              # The 'all' relation must be captured outside the Enumerator,
+              # else it will get reset to all the records of the class.
+              all_activerecord_relation = all.includes(describer.includes)
 
-            Enumerator.new do |yielder|
-              ActiveRecord::Base.connected_to(role: :writing, shard: describer.database.call) do
-                exporting = exporter.new_exporting(describer: describer)
+              Enumerator.new do |yielder|
+                ActiveRecord::Base.connected_to(role: :writing, shard: describer.database.call) do
+                  exporting = exporter.new_exporting(describer: describer)
 
-                # Add the headings.
-                yielder << CSV.generate_line(exporting.headings) if exporting.headings?
+                  # Add the headings.
+                  yielder << CSV.generate_line(exporting.headings) if exporting.headings?
 
-                # Add the values.
-                # find_each will ignore any order if set earlier.
-                all_activerecord_relation.find_each do |record|
-                  lines = exporting.lines_for(record: record)
-                  lines.each { |line| yielder << CSV.generate_line(line) }
+                  # Add the values.
+                  # find_each will ignore any order if set earlier.
+                  all_activerecord_relation.find_each do |record|
+                    lines = exporting.lines_for(record: record)
+                    lines.each { |line| yielder << CSV.generate_line(line) }
+                  end
                 end
               end
             end
