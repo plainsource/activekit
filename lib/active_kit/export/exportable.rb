@@ -3,24 +3,13 @@ require 'active_support/concern'
 module ActiveKit
   module Export
     module Exportable
+      extend Bedrock::Bedrockable
       extend ActiveSupport::Concern
 
       included do
       end
 
       class_methods do
-        def exporter
-          @exporter ||= ActiveKit::Export::Exporter.new(current_class: self)
-        end
-
-        def export_describer(name, **options)
-          exporter.create_describer(name, options)
-        end
-
-        def export_attribute(name, **options)
-          exporter.create_attribute(name, options)
-        end
-
         def export_describer_method(describer)
           case describer.kind
           when :csv
