@@ -10,6 +10,7 @@ module ActiveKit
     end
 
     initializer "active_kit.activekitable" do
+      require "active_kit/bedrock/bedrockable"
       require "active_kit/export/exportable"
       require "active_kit/position/positionable"
       require "active_kit/search/searchable"
