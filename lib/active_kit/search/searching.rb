@@ -1,104 +1,68 @@
-# module ActiveKit
-#   module Search
-#     class Searching
+module ActiveKit
+  module Search
+    class Searching < Bedrock::Bedrocking
+      attr_reader :current_page, :previous_page, :next_page
 
-#       def initialize(describer:)
-#         @describer = describer
-#       end
+      def initialize(describer:, current_class:)
+        super
 
-#       def headings
-#         @headings ||= @describer.fields.keys.flatten
-#       end
+        @index = Index.new(current_class: @current_class)
+        @key = Key.new(index: @index)
+        @suggestion = Suggestion.new(current_class: @current_class)
+      end
 
-#       def headings?
-#         headings.present?
-#       end
+      def reload(record: nil)
+        record ? @key.reload(record: record) : @current_class.all.each { |rec| @key.reload(record: rec) }
+        @index.reload
+      end
 
-#       def lines_for(record:)
-#         row_counter, column_counter = 1, 0
+      def clear(record: nil)
+        record ? @key.clear(record: record) : @current_class.all.each { |rec| @key.clear(record: rec) }
+        @index.reload
+      end
 
-#         @describer.fields.inject([[]]) do |rows, (heading, value)|
-#           if value.is_a? Proc
-#             rows[0].push(value.call(record))
-#             column_counter += 1
-#           elsif value.is_a?(Symbol) || value.is_a?(String)
-#             rows[0].push(record.public_send(value))
-#             column_counter += 1
-#           elsif value.is_a? Array
-#             deeprows = get_deeprows(record, heading, value, column_counter)
-#             deeprows.each do |deeprow|
-#               rows[row_counter] = deeprow
-#               row_counter += 1
-#             end
+      def fetch(**options)
+        search_result = @index.fetch(**options)
 
-#             column_count = get_column_count_for(value)
-#             column_count.times { |i| rows[0].push(nil) }
-#             column_counter += column_count
-#           else
-#             raise "Could not identify '#{value}' for '#{heading}'."
-#           end
+        if search_result.keys.any?
+          @suggestion.add(term: search_result.term)
+        else
+          @suggestion.del(term: search_result.term)
+        end
 
-#           rows
-#         end
-#       end
+        @current_page = search_result.current_page
+        @previous_page = search_result.previous_page
+        @next_page = search_result.next_page
 
-#       private
+        search_result
+      end
 
-#       def get_deeprows(record, heading, value, column_counter)
-#         value_clone = value.clone
-#         assoc_value = value_clone.shift
+      def suggestions(prefix:)
+        @suggestion.fetch(prefix: prefix)
+      end
 
-#         if assoc_value.is_a? Proc
-#           assoc_records = assoc_value.call(record)
-#         elsif assoc_value.is_a?(Symbol) || assoc_value.is_a?(String)
-#           assoc_records = record.public_send(assoc_value)
-#         else
-#           raise "Count not identity '#{assoc_value}' for '#{heading}'."
-#         end
+      def drop
+        total_count = @index.fetch(offset: 0, limit: 0).count
+        keys = @index.fetch(offset: 0, limit: total_count).keys
+        @key.drop(keys: keys)
+        @index.drop
+      end
 
-#         subrows = []
-#         assoc_records.each do |assoc_record|
-#           subrow, subrow_column_counter, deeprows = [], 0, []
-#           column_counter.times { |i| subrow.push(nil) }
+      def previous_page?
+        !!@previous_page
+      end
 
-#           subrow = value_clone.inject(subrow) do |subrow, v|
-#             if v.is_a? Proc
-#               subrow.push(v.call(assoc_record))
-#               subrow_column_counter += 1
-#             elsif v.is_a?(Symbol) || v.is_a?(String)
-#               subrow.push(assoc_record.public_send(v))
-#               subrow_column_counter += 1
-#             elsif v.is_a? Array
-#               deeprows = get_deeprows(assoc_record, heading, v, (column_counter + subrow_column_counter))
+      def next_page?
+        !!@next_page
+      end
 
-#               column_count = get_column_count_for(v)
-#               column_count.times { |i| subrow.push(nil) }
-#               subrow_column_counter += column_count
-#             end
+      def add_attribute(name:, options:)
+        @index.add_attribute_to_schema(name: name, options: options)
+      end
 
-#             subrow
-#           end
-
-#           subrows.push(subrow)
-#           deeprows.each { |deeprow| subrows.push(deeprow) }
-#         end
-
-#         subrows
-#       end
-
-#       def get_column_count_for(value)
-#         count = 0
-
-#         value.each do |v|
-#           unless v.is_a? Array
-#             count += 1
-#           else
-#             count += get_column_count_for(v)
-#           end
-#         end
-
-#         count - 1
-#       end
-#     end
-#   end
-# end
+      def attributes_present?
+        @index.schema.present?
+      end
+    end
+  end
+end

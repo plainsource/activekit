@@ -15,10 +15,8 @@ module ActiveKit
           options.store(:attributes, {})
           @describers.store(name, options)
           @current_class.class_eval <<-CODE, __FILE__, __LINE__ + 1
-            def self.#{name}
-              if describer = #{@current_component}er.find_describer_by(name: "#{name}".to_sym)
-                #{@current_component}_describer_method(describer)
-              end
+            def self.#{name}(**params)
+              #{@current_component}er.run_describer_method("#{name}", params)
             end
           CODE
         end
@@ -39,6 +37,39 @@ module ActiveKit
         end
       end
 
+      def run_describer_method(describer_name, params)
+        raise "Could not find describer while creating describer method." unless describer = find_describer_by(name: describer_name.to_sym)
+        describer_method(describer, params)
+      end
+
+      def describer_method(describer, params)
+        raise NotImplementedError
+      end
+
+      def for(describer_name)
+        describer_name = @describers.keys[0] if describer_name.nil?
+        raise "Could not find any describer name in bedrocker." if describer_name.blank?
+
+        describer_name = describer_name.to_sym
+        raise "Could not find describer '#{describer_name}' in bedrocker." unless @describers.dig(describer_name)
+        componenting = @describers.dig(describer_name, :componenting)
+        return componenting if componenting
+
+        @describers[describer_name][:componenting] = "ActiveKit::#{@current_component.to_s.titleize}::#{@current_component.to_s.titleize}ing".constantize.new(describer: find_describer_by(name: describer_name), current_class: @current_class)
+        @describers[describer_name][:componenting]
+      end
+
+      private
+
+      def create_default_describer
+        case @current_component
+        when :export
+          create_describer(:to_csv, kind: :csv, database: -> { ActiveRecord::Base.connection_db_config.database.to_sym })
+        when :search
+          create_describer(:limit_by_search, database: -> { ActiveRecord::Base.connection_db_config.database.to_sym })
+        end
+      end
+
       def find_describer_by(name:)
         options = @describers.dig(name)
         return nil unless options.present?
@@ -56,8 +87,6 @@ module ActiveKit
         end
         OpenStruct.new(hash)
       end
-
-      private
 
       def build_describer_fields(describer_attributes)
         describer_attributes.inject({}) do |fields_hash, (name, options)|
@@ -107,13 +136,6 @@ module ActiveKit
 
       def get_heading(options_heading)
         options_heading.is_a?(Proc) ? options_heading.call(@current_class) : options_heading
-      end
-
-      def create_default_describer
-        case @current_component
-        when :export
-          create_describer(:to_csv, kind: :csv, database: -> { ActiveRecord::Base.connection_db_config.database.to_sym })
-        end
       end
     end
   end
