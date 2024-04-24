@@ -9,8 +9,9 @@ module ActiveKit
         @describer = describer
 
         current_class_name = current_class.to_s.parameterize.pluralize
-        @name = "activekit:search:index:#{current_class_name}"
-        @prefix = "activekit:search:#{current_class_name}"
+        describer_name = describer.name.to_s
+        @name = "activekit:search:index:#{current_class_name}:#{describer_name}"
+        @prefix = "activekit:search:#{current_class_name}:#{describer_name}"
         @schema = {}
         @attribute_value_parser = {}
       end

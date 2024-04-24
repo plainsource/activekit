@@ -6,6 +6,7 @@ module ActiveKit
         @current_class = current_class
         @describer = describer
         @current_class_name = current_class.to_s.parameterize.pluralize
+        @describer_name = describer.name.to_s
       end
 
       def add(term:, score: 1, increment: true)
@@ -33,7 +34,7 @@ module ActiveKit
       private
 
       def key
-        "activekit:search:suggestions:#{@current_class_name}:#{@describer.database.call}"
+        "activekit:search:suggestions:#{@current_class_name}:#{@describer_name}:#{@describer.database.call}"
       end
     end
   end
