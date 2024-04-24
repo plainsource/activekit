@@ -1,11 +1,6 @@
 module ActiveKit
   module Export
-    class Exporting
-
-      def initialize(describer:)
-        @describer = describer
-      end
-
+    class Exporting < Bedrock::Bedrocking
       def headings
         @headings ||= @describer.fields.keys.flatten
       end
