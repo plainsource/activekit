@@ -3,9 +3,10 @@ module ActiveKit
     class Index
       attr_reader :prefix, :schema, :attribute_value_parser
 
-      def initialize(current_class:)
+      def initialize(current_class:, describer:)
         @redis = ActiveKit::Search.redis
         @current_class = current_class
+        @describer = describer
 
         current_class_name = current_class.to_s.parameterize.pluralize
         @name = "activekit:search:index:#{current_class_name}"
@@ -137,7 +138,7 @@ module ActiveKit
             end
           end
 
-          query = "@database:{#{escape_separators(System::Current.tenant.database, include_space: true)}}#{term}#{tags}#{modifiers}"
+          query = "@database:{#{escape_separators(@describer.database.call, include_space: true)}}#{term}#{tags}#{modifiers}"
           command = [
             "FT.SEARCH",
             @name,

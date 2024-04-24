@@ -1,16 +1,17 @@
 module ActiveKit
   module Search
     class Key
-      def initialize(index:)
+      def initialize(index:, describer:)
         @redis = ActiveKit::Search.redis
         @index = index
+        @describer = describer
       end
 
       def reload(record:)
         clear(record: record)
 
         hash_key = key(record: record)
-        hash_value = { "database" => System::Current.tenant.database, "id" => record.id }
+        hash_value = { "database" => @describer.database.call, "id" => record.id }
         @index.schema.each do |field_name, field_value|
           attribute_name = field_name
           attribute_value = @index.attribute_value_parser[field_name]&.call(record) || record.public_send(field_name)
@@ -37,7 +38,7 @@ module ActiveKit
       private
 
       def key(record:)
-        "#{@index.prefix}:#{System::Current.tenant.database}:#{record.id}"
+        "#{@index.prefix}:#{@describer.database.call}:#{record.id}"
       end
     end
   end

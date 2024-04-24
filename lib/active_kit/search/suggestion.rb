@@ -1,9 +1,10 @@
 module ActiveKit
   module Search
     class Suggestion
-      def initialize(current_class:)
+      def initialize(current_class:, describer:)
         @redis = ActiveKit::Search.redis
         @current_class = current_class
+        @describer = describer
         @current_class_name = current_class.to_s.parameterize.pluralize
       end
 
@@ -32,7 +33,7 @@ module ActiveKit
       private
 
       def key
-        "activekit:search:suggestions:#{@current_class_name}:#{System::Current.tenant.database}"
+        "activekit:search:suggestions:#{@current_class_name}:#{@describer.database.call}"
       end
     end
   end

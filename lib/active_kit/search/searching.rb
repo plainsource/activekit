@@ -6,9 +6,9 @@ module ActiveKit
       def initialize(describer:, current_class:)
         super
 
-        @index = Index.new(current_class: @current_class)
-        @key = Key.new(index: @index)
-        @suggestion = Suggestion.new(current_class: @current_class)
+        @index = Index.new(current_class: @current_class, describer: describer)
+        @key = Key.new(index: @index, describer: describer)
+        @suggestion = Suggestion.new(current_class: @current_class, describer: describer)
       end
 
       def reload(record: nil)
