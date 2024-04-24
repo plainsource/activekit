@@ -9,7 +9,7 @@ module ActiveKit
           all_activerecord_relation = @current_class.all.includes(describer.includes)
 
           Enumerator.new do |yielder|
-            ActiveRecord::Base.connected_to(role: :writing, shard: describer.database.call) do
+            ActiveRecord::Base.connected_to(role: :writing, shard: describer.database.call.to_sym) do
               exporting = self.for(describer.name)
 
               # Add the headings.

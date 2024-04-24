@@ -23,8 +23,8 @@ end
 You can also define an export_describer to describe the details of the export instead of using the defaults.
 ```ruby
 class Product < ApplicationRecord
-  # export_describer method_name, kind: :csv, database: -> { ActiveRecord::Base.connection_db_config.database.to_sym }
-  export_describer :to_csv, kind: :csv, database: -> { System::Current.tenant.database.to_sym }
+  # export_describer method_name, kind: :csv, database: -> { ActiveRecord::Base.connection_db_config.database }
+  export_describer :to_csv, kind: :csv, database: -> { System::Current.tenant.database }
   export_attribute :name
   export_attribute :sku, heading: "SKU No."
   export_attribute :image_name, value: lambda { |record| record.image&.name }, includes: :image

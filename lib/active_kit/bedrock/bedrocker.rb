@@ -64,9 +64,9 @@ module ActiveKit
       def create_default_describer
         case @current_component
         when :export
-          create_describer(:to_csv, kind: :csv, database: -> { ActiveRecord::Base.connection_db_config.database.to_sym })
+          create_describer(:to_csv, kind: :csv, database: -> { ActiveRecord::Base.connection_db_config.database })
         when :search
-          create_describer(:limit_by_search, database: -> { ActiveRecord::Base.connection_db_config.database.to_sym })
+          create_describer(:limit_by_search, database: -> { ActiveRecord::Base.connection_db_config.database })
         end
       end
 
