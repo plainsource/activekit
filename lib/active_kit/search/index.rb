@@ -17,7 +17,7 @@ module ActiveKit
       end
 
       def add_attribute_to_schema(name:, options:)
-        raise "Error: No type specified for the search attribute #{name}." unless options[:type].present?
+        raise "Error: No type specified for the search attribute '#{name}'." unless options[:type].present?
 
         attribute_schema = []
 

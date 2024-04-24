@@ -29,7 +29,7 @@ module ActiveKit
         models.each do |model|
           model_const = model.constantize
           if model_const.try(:searcher)
-            describer_names = @given_describer.present? ? [@given_describer] : model_const.searcher.describer_names
+            describer_names = @given_describer.present? ? [@given_describer] : model_const.searcher.get_describer_names
             describer_names.each do |describer_name|
               if model_const.searcher.for(describer_name).attributes_present?
                 puts "ActiveKit::Search | #{log_name}: #{model}"

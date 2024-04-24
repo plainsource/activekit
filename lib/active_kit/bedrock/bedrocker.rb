@@ -35,6 +35,8 @@ module ActiveKit
             describer_options[:attributes].store(name, options)
           end
         end
+
+        describer_names
       end
 
       def run_describer_method(describer_name, params)
@@ -59,7 +61,7 @@ module ActiveKit
         @describers[describer_name][:componenting]
       end
 
-      def describer_names
+      def get_describer_names
         @describers.keys.map(&:to_s)
       end
 
