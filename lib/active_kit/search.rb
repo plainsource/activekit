@@ -4,6 +4,7 @@ module ActiveKit
 
     autoload :Index
     autoload :Key
+    autoload :Manager
     autoload :SearchResult
     autoload :Searcher
     autoload :Searching

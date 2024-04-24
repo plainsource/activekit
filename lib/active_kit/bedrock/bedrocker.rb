@@ -48,15 +48,19 @@ module ActiveKit
 
       def for(describer_name)
         describer_name = @describers.keys[0] if describer_name.nil?
-        raise "Could not find any describer name in bedrocker." if describer_name.blank?
+        raise "Could not find any describer name in #{@current_class.name}." if describer_name.blank?
 
         describer_name = describer_name.to_sym
-        raise "Could not find describer '#{describer_name}' in bedrocker." unless @describers.dig(describer_name)
+        raise "Could not find describer '#{describer_name}' in #{@current_class.name}." unless @describers.dig(describer_name)
         componenting = @describers.dig(describer_name, :componenting)
         return componenting if componenting
 
         @describers[describer_name][:componenting] = "ActiveKit::#{@current_component.to_s.titleize}::#{@current_component.to_s.titleize}ing".constantize.new(describer: find_describer_by(name: describer_name), current_class: @current_class)
         @describers[describer_name][:componenting]
+      end
+
+      def describer_names
+        @describers.keys.map(&:to_s)
       end
 
       private
