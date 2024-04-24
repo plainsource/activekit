@@ -34,7 +34,13 @@ end
 
 The following class methods will be added to your model class to use in accordance with details provided for search_describer:
 ```ruby
-Product.limit_by_search(term, params)
+Product.limit_by_search(term: "term", tags: { published: true }, order: "name asc", page: 1)
+Product.searcher.for(:limit_by_search).current_page
+Product.searcher.for(:limit_by_search).previous_page?
+Product.searcher.for(:limit_by_search).previous_page
+Product.searcher.for(:limit_by_search).next_page?
+Product.searcher.for(:limit_by_search).next_page
+Product.searcher.for(:limit_by_search).suggestions(prefix: "prefix_term").keys
 ```
 
 ### Export Attribute
