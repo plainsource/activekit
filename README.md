@@ -3,6 +3,40 @@ Add the essential kit for rails ActiveRecord models and be happy.
 
 ## Usage
 
+### Search Attribute
+
+Add searching to your ActiveRecord models.
+Search Attribute provides full searching functionality for your model database records using redis search including search suggestions.
+
+You can define any number of model attributes in one model to search together.
+
+Define the search attributes in accordance with the column name in your model like below.
+```ruby
+class Product < ApplicationRecord
+  search_attribute :name, type: :text
+  search_attribute :permalink, type: :tag
+  search_attribute :short_description, type: :text
+  search_attribute :published, type: :tag, sortable: true
+end
+```
+
+You can also define a search_describer to describe the details of the search instead of using the defaults.
+```ruby
+class Product < ApplicationRecord
+  # search_describer method_name, database: -> { ActiveRecord::Base.connection_db_config.database }
+  search_describer :limit_by_search, database: -> { System::Current.tenant.database }
+  search_attribute :name, type: :text
+  search_attribute :permalink, type: :tag
+  search_attribute :short_description, type: :text
+  search_attribute :published, type: :tag, sortable: true
+end
+```
+
+The following class methods will be added to your model class to use in accordance with details provided for search_describer:
+```ruby
+Product.limit_by_search(term, params)
+```
+
 ### Export Attribute
 
 Add exporting to your ActiveRecord models.
