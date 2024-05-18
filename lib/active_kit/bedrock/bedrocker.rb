@@ -50,10 +50,10 @@ module ActiveKit
 
       def for(describer_name)
         describer_name = @describers.keys[0] if describer_name.nil?
-        raise "Could not find any describer name in #{@current_class.name}." if describer_name.blank?
+        raise "Could not find any describer name in '#{@current_class.name}'." if describer_name.blank?
 
         describer_name = describer_name.to_sym
-        raise "Could not find describer '#{describer_name}' in #{@current_class.name}." unless @describers.dig(describer_name)
+        raise "Could not find describer '#{describer_name}' in '#{@current_class.name}'." unless @describers.dig(describer_name)
         componenting = @describers.dig(describer_name, :componenting)
         return componenting if componenting
 
