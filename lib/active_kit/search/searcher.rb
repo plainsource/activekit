@@ -6,7 +6,7 @@ module ActiveKit
 
         depends_on = options.delete(:depends_on) || {}
         describer_names.each do |describer_name|
-          set_reload_callbacks(depends_on, describer_name)
+          set_callbacks(describer_name, depends_on)
           self.for(describer_name).add_attribute(name: name, options: options.deep_dup)
         end
       end
@@ -18,33 +18,58 @@ module ActiveKit
 
       private
 
-      # Set callbacks for current class and depending classes.
-      def set_reload_callbacks(depends_on, describer_name)
-        @current_class.class_eval do
-          unless searcher.for(describer_name).attributes_present?
-            after_commit do
-              self.class.searcher.for(describer_name).reload(record: self)
-              logger.info "ActiveKit::Search | Indexing from #{self.class.name}: Done."
-            end
-          end
+      # Set callbacks for depending classes and then current class.
+      def set_callbacks(describer_name, depends_on)
+        depends_on.each do |depends_on_association, depends_on_inverse|
+          klass = @current_class.reflect_on_all_associations.map { |assoc| [assoc.name, assoc.klass.name] }.to_h[depends_on_association]
 
-          unless depends_on.empty?
-            depends_on.each do |depends_on_association, depends_on_inverse|
-              klass = self.reflect_on_all_associations.map { |assoc| [assoc.name, assoc.klass.name] }.to_h[depends_on_association]
-              klass.constantize.class_eval do
-                after_commit do
-                  inverse_assoc = self.public_send(depends_on_inverse)
-                  if inverse_assoc.respond_to?(:each)
-                    inverse_assoc.each { |instance| instance.class.searcher.for(describer_name).reload(record: instance) }
-                  else
-                    inverse_assoc.class.searcher.for(describer_name).reload(record: inverse_assoc)
+          next if klass.constantize.private_method_defined?(after_commit_depends_callback_method_name(describer_name))
+          klass.constantize.class_eval <<-CODE, __FILE__, __LINE__ + 1
+            after_commit :#{after_commit_depends_callback_method_name(describer_name)}
+
+            private
+
+            def #{after_commit_depends_callback_method_name(describer_name)}
+              inverse_assoc = self.public_send("#{depends_on_inverse}")
+              if inverse_assoc.respond_to?(:each)
+                inverse_assoc.each do |instance|
+                  if instance.class.name == "#{@current_class.name}"
+                    instance.class.searcher.for("#{describer_name}").reload(record: instance)
                   end
-                  logger.info "ActiveKit::Search | Indexing from #{self.class.name}: Done."
+                end
+              else
+                if inverse_assoc.class.name == "#{@current_class.name}"
+                  inverse_assoc.class.searcher.for("#{describer_name}").reload(record: inverse_assoc)
                 end
               end
+              logger.info "ActiveKit::Search | Indexing Done. (Class: " + self.class.name + " | Reloading: #{@current_class.name} | Describer: #{describer_name})"
             end
-          end
+          CODE
         end
+
+        return if @current_class.private_method_defined?(after_commit_callback_method_name(describer_name))
+        @current_class.class_eval <<-CODE, __FILE__, __LINE__ + 1
+          after_commit :#{after_commit_callback_method_name(describer_name)}
+
+          private
+
+          def #{after_commit_callback_method_name(describer_name)}
+            self.class.searcher.for("#{describer_name}").reload(record: self)
+            logger.info "ActiveKit::Search | Indexing Done. (Class: " + self.class.name + " | Reloading: #{@current_class.name} | Describer: #{describer_name})"
+          end
+        CODE
+      end
+
+      def after_commit_callback_method_name(describer_name)
+        "#{callback_method_name(describer_name)}_callback"
+      end
+
+      def after_commit_depends_callback_method_name(describer_name)
+        "#{callback_method_name(describer_name)}_depends_callback"
+      end
+
+      def callback_method_name(describer_name)
+        "activekit_search_#{@current_class.model_name.singular}_#{describer_name}"
       end
     end
   end
