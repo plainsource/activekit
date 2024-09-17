@@ -1,3 +1,3 @@
 module ActiveKit
-  VERSION = '0.3.2'
+  VERSION = '0.6.1'
 end

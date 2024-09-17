@@ -3,6 +3,80 @@ Add the essential kit for rails ActiveRecord models and be happy.
 
 ## Usage
 
+### Search Attribute
+
+Add searching to your ActiveRecord models.
+Search Attribute provides full searching functionality for your model database records using redis search including search suggestions.
+
+You can define any number of model attributes in one model to search together.
+
+Define the search attributes in accordance with the column name in your model like below.
+```ruby
+class Product < ApplicationRecord
+  search_attribute :name, type: :text
+  search_attribute :permalink, type: :tag
+  search_attribute :short_description, type: :text
+  search_attribute :published, type: :tag, sortable: true
+end
+```
+
+You can also define a search_describer to describe the details of the search instead of using the defaults.
+```ruby
+class Product < ApplicationRecord
+  # search_describer method_name, database: -> { ActiveRecord::Base.connection_db_config.database }
+  search_describer :limit_by_search, database: -> { System::Current.tenant.database }
+  search_attribute :name, type: :text
+  search_attribute :permalink, type: :tag
+  search_attribute :short_description, type: :text
+  search_attribute :published, type: :tag, sortable: true
+end
+```
+
+The following class methods will be added to your model class to use in accordance with details provided for search_describer:
+```ruby
+Product.limit_by_search(term: "term", tags: { published: true }, order: "name asc", page: 1)
+Product.searcher.for(:limit_by_search).current_page
+Product.searcher.for(:limit_by_search).previous_page?
+Product.searcher.for(:limit_by_search).previous_page
+Product.searcher.for(:limit_by_search).next_page?
+Product.searcher.for(:limit_by_search).next_page
+Product.searcher.for(:limit_by_search).suggestions(prefix: "prefix_term").keys
+```
+
+### Export Attribute
+
+Add exporting to your ActiveRecord models.
+Export Attribute provides full exporting functionality for your model database records.
+
+You can define any number of model attributes and association attributes in one model to export together.
+
+Define the export attributes in accordance with the column name in your model like below.
+```ruby
+class Product < ApplicationRecord
+  export_attribute :name
+  export_attribute :sku, heading: "SKU No."
+  export_attribute :image_name, value: lambda { |record| record.image&.name }, includes: :image
+  export_attribute :variations, value: lambda { |record| record.variations }, includes: :variations, attributes: [:name, :price, discount_value: { heading: "Discount" }]
+end
+```
+
+You can also define an export_describer to describe the details of the export instead of using the defaults.
+```ruby
+class Product < ApplicationRecord
+  # export_describer method_name, kind: :csv, database: -> { ActiveRecord::Base.connection_db_config.database }
+  export_describer :to_csv, kind: :csv, database: -> { System::Current.tenant.database }
+  export_attribute :name
+  export_attribute :sku, heading: "SKU No."
+  export_attribute :image_name, value: lambda { |record| record.image&.name }, includes: :image
+  export_attribute :variations, value: lambda { |record| record.variations }, includes: :variations, attributes: [:name, :price, discount_value: { heading: "Discount" }]
+end
+```
+
+The following class methods will be added to your model class to use in accordance with details provided for export_describer:
+```ruby
+Product.to_csv
+```
+
 ### Position Attribute
 
 Add positioning to your ActiveRecord models.

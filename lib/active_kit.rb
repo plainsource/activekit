@@ -4,6 +4,9 @@ require "active_kit/engine"
 module ActiveKit
   extend ActiveSupport::Autoload
 
+  autoload :Bedrock
+  autoload :Export
   autoload :Position
   autoload :Schedule
+  autoload :Search
 end
